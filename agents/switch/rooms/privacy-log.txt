@@ -1,0 +1,1 @@
+Recording only inside an open incident geofence. No face recognition exists here. Every authorisation, recording window and refusal is logged, append-only.

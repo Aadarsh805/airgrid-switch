@@ -1,0 +1,27 @@
+# Which agent joins which room (docs/05-AGENTS.md). Not a Switch template: the rooms already exist
+# (Discord bridge), so this is the checklist for `!invite-agent` in HUMAN_TODO Phase 08.
+agents:
+  dispatch: ["#dispatch", "#incident-1", "#incident-2"]
+  fleet: ["#fleet-hangar"]
+  airspace: ["#airspace", "#incident-1", "#incident-2"]
+  intel: ["#incident-1", "#incident-2"]
+  relay: ["#incident-1", "#incident-2"]
+  privacy: ["#privacy-log", "#incident-1", "#incident-2"]
+  comms: ["#field-units", "#shift-report", "#incident-1", "#incident-2"]
+worldbot:
+  ["#dispatch", "#fleet-hangar", "#airspace", "#incident-1", "#incident-2", "#field-units",
+   "#privacy-log", "#shift-report", "#test-room"]
+# City mode (docs/city-mode.md), the default demo: #ops stays calm, the work is in the incident rooms.
+city:
+  dispatch: ["#ops", "#incident-1", "#incident-2"]
+  fire-station: ["#incident-1", "#incident-2"]
+  hospital: ["#incident-1", "#incident-2"]
+  police: ["#incident-1", "#incident-2"]
+  worldbot: ["#ops", "#incident-1", "#incident-2"]
+# Game mode (docs/game-mode.md): two rooms, four agents.
+game:
+  dispatch: ["#ops"]
+  intel: ["#ops"]
+  airspace: ["#ops"]
+  privacy: ["#ops", "#privacy-log"]
+  worldbot: ["#ops", "#privacy-log"]

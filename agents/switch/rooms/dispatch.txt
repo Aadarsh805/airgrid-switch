@@ -1,0 +1,1 @@
+Accident/fire/flood alerts auto-launch under the standing policy. Tracking a person never auto-launches: it needs an approval with scope and expiry. Every launch states its basis.

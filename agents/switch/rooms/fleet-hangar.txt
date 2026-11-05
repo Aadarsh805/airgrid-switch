@@ -1,0 +1,1 @@
+25% reserve is a hard floor. Relief is on station before a tired drone leaves. A slot is booked before any RTB. Max 4 drones per pilot. A charging drone is never "ready".

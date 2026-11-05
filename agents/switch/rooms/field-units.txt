@@ -1,0 +1,1 @@
+ETAs from the sim only. Early release names the evidence. Ask "@dispatch need eyes on <place>" and you get a drone or a reason code.
