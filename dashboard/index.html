@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>AirGrid ops wall · Northgate District (fictional, simulated)</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='5' fill='%2357B7E8'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+    { "imports": {
+      "three": "./vendor/three.module.min.js",
+      "three/addons/controls/OrbitControls.js": "./vendor/OrbitControls.js",
+      "three/addons/loaders/GLTFLoader.js": "./vendor/jsm/loaders/GLTFLoader.js"
+    } }
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><strong>AIRGRID</strong><span id="district">NORTHGATE DISTRICT (fictional)</span></div>
+    <div class="clock" aria-label="Simulated clock"><span id="day"></span> <output id="clock">--:--:--</output></div>
+    <div class="tags">
+      <span id="modeTag" class="tag">connecting</span>
+      <span id="runTag" class="tag" hidden></span>
+      <span id="skipTag" class="tag tag-sky" hidden>⏩ skipped</span>
+    </div>
+    <nav class="controls" aria-label="Simulator controls">
+      <button id="btnRun" title="Run or resume" aria-label="Run">▶</button>
+      <button id="btnPause" title="Pause" aria-label="Pause">⏸</button>
+      <button id="btnSkip" title="Skip to next event" aria-label="Skip to next event">⏩</button>
+      <button id="btnReset" title="Reset (click twice)" aria-label="Reset">↺</button>
+      <span class="seg" role="group" aria-label="Speed in sim-minutes per second">
+        <button data-speed="0.5">0.5</button><button data-speed="1">1</button><button data-speed="2">2</button>
+      </span>
+      <button id="btnOrbit" class="text" aria-pressed="false" title="Slow camera orbit">Orbit</button>
+      <button id="btnDetails" class="text" aria-pressed="false">Fleet</button>
+      <button id="btnTriggers" class="text" popovertarget="picker">Triggers</button>
+      <button id="btnBaseline" class="text" aria-pressed="false">Baseline: off</button>
+    </nav>
+    <input id="scrub" type="range" aria-label="Replay position" hidden>
+  </header>
+
+  <main class="stage">
+    <section id="cityPane" class="cityPane" aria-label="Live 3D view of the fictional district">
+      <div id="labels" class="labels"></div>
+      <div id="banner" class="banner" role="status" hidden></div>
+      <p id="legend" class="legend">Blue rings fly patrol · red beacons are incidents · gold means it needs you · buildings are decorative · drag to orbit, scroll to zoom</p>
+      <section id="feed" class="feed" aria-label="What's happening"></section>
+      <div id="webgl" class="webgl" hidden></div>
+      <section id="details" class="details" aria-label="Fleet board and airspace" hidden>
+        <h2>Fleet <span id="fleetSub" class="sub"></span></h2>
+        <div class="fleetHead"><span>Drone</span><span>State</span><span>Battery</span><span>Mission</span><span>Pilot</span><span>Slot</span></div>
+        <div id="fleet" class="fleet"></div>
+        <h2>Airspace</h2>
+        <div id="sectors" class="sectors"></div>
+      </section>
+      <section id="scorecard" class="scorecard" aria-label="Scorecard" hidden></section>
+      <div id="gAlarm" class="gFlash" aria-hidden="true"></div>
+      <div id="gWall" class="gFlash" aria-hidden="true"></div>
+      <section id="cTop" class="cTop" aria-label="City status">
+        <div class="cTitle"><b>AIRGRID</b><span>fictional, simulated</span><output id="cClock"></output></div>
+        <dl class="cCounts">
+          <div><dt>Incidents handled</dt><dd id="cHandled">0</dd></div>
+          <div><dt>Average response</dt><dd id="cAvg">—</dd></div>
+          <div><dt>Drones up</dt><dd id="cUp">0</dd></div>
+        </dl>
+      </section>
+      <section class="cBottom" aria-label="City controls">
+        <p id="cLine" class="cLine" role="status">The city is waking up.</p>
+        <div class="cBtns"><button id="cFire" class="cBig">🔥 Simulate fire</button><button id="cCrash" class="cBig">💥 Simulate accident</button><button id="cRandom" class="cBig wide">🎲 Random fire<small>drones must find it</small></button></div>
+      </section>
+      <section id="gHud" class="gHud" aria-label="Game status" hidden>
+        <div class="gChips"><output id="gClock"></output><div id="gSteps" class="gSteps"></div><output id="gScoreChip" class="gChip"></output></div>
+      </section>
+      <section id="gCard" class="gCard" aria-live="polite" hidden></section>
+      <section id="gRefuse" class="gRefuse" role="alert" hidden></section>
+      <section id="gFly" class="gFly" aria-label="Flight controls" hidden>
+        <div class="gFlyTop"><b>You are flying <span id="gDrone"></span>. Catch the scooter.</b><span class="gKeys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrow keys</span></div>
+        <div class="gFlyRow">
+          <div class="gBatBox"><small>Battery</small><span class="bar"><b id="gBat"></b></span><b id="gBatN"></b></div>
+          <div class="gDistBox"><span id="gArrow" class="gArrow" aria-hidden="true">▲</span><div><b id="gDist"></b><small id="gDistL"></small></div></div>
+        </div>
+        <p id="gBlocked" class="gBlocked" hidden>⛔ NO_FLY_ZONE: the red wall stops every drone. Go around it.</p>
+      </section>
+      <section id="gCaught" class="gCaught" role="status" hidden></section>
+      <section id="gEnd" class="gEnd" aria-label="Final score" hidden></section>
+      <section id="gStart" class="gStart" aria-label="Start" hidden></section>
+      <button id="gOps" class="gOps" aria-pressed="false" title="Show the full operations view">Ops</button>
+    </section>
+    <aside class="rail">
+      <h2>In the air <span id="airCount" class="sub"></span></h2>
+      <div id="air" class="air"></div>
+      <h2>Incidents</h2>
+      <div id="incidents" class="cards"></div>
+    </aside>
+  </main>
+
+  <section id="kpi" class="kpi" aria-label="Key figures"></section>
+  <section class="ticker" aria-label="Privacy ticker"><span class="tickLabel">🔐 Privacy</span><div id="ticker" class="tickBody"></div></section>
+  <footer class="foot"><span>Fictional district · simplified rules modelled on real DFR practice · simulated</span><span id="source"></span></footer>
+
+  <div id="picker" popover class="picker">
+    <h2>Fire a trigger</h2>
+    <p>Fires at the current sim time and is logged as an event.</p>
+    <div class="trigGrid">
+      <button data-trigger="fire">Fire</button>
+      <button data-trigger="missing_child">Missing child</button>
+      <button data-trigger="underpass_flood">Underpass flood</button>
+      <button data-trigger="drone_fault">Drone fault</button>
+      <button data-trigger="unauthorised_drone">Unauthorised drone</button>
+      <button data-trigger="vip_zone">VIP zone</button>
+      <button data-trigger="officer_request">Manual officer request</button>
+    </div>
+    <h2>Scenario</h2>
+    <form id="scenarioForm" class="scenForm">
+      <label>Name <select name="name"><option>FRIDAY-RUSH</option><option>QUIET-SHIFT</option></select></label>
+      <label>Seed <input name="seed" placeholder="scenario default" autocomplete="off"></label>
+      <label>Mode <select name="mode"><option>demo</option><option>live</option></select></label>
+      <button type="submit">Load</button>
+    </form>
+  </div>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+  <div id="fatal" class="fatal" hidden></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

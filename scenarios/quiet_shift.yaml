@@ -1,0 +1,31 @@
+name: QUIET-SHIFT
+title: Quiet Tuesday (agents must stay quiet)
+seed: QUIET-01
+day: Tuesday
+start: "14:00"
+end: "16:00"
+initial:
+  airborne:
+    D-02: {battery: 90, mission: patrol, loop: NORTH, pilot: DP-1}
+    D-07: {battery: 85, mission: patrol, loop: CENTRAL, pilot: DP-1}
+    D-10: {battery: 80, mission: patrol, loop: SOUTH, pilot: DP-2}
+  docked:
+    D-01: {battery: 100, at: P1}
+    D-03: {battery: 100, at: P3}
+    D-04: {battery: 100, at: P4}
+    D-05: {battery: 100, at: P5}
+    D-06: {battery: 100, at: P6}
+    D-08: {battery: 100, at: P8}
+    D-09: {battery: 100, at: P9}
+    D-11: {battery: 100, at: P11}
+    D-12: {battery: 100, at: P12}
+    D-13: {battery: 100, at: HUB-A}
+    D-14: {battery: 100, at: HUB-A}
+events:
+  - {t: "14:00", type: shift_brief}
+suspect_path: []
+golden_actions: []
+feed: []
+expected:
+  managed: {reserve_breaches: 0, coverage_pct_min: 95}
+  agent_messages_max: {fleet: 14, others: 0}   # 9 🔄 rotations (computed) + 5 🔋 (14:00–16:00 every 30 min); nobody else talks (L36)

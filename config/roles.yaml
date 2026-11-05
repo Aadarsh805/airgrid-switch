@@ -1,0 +1,18 @@
+agents:
+  dispatch: [incident_open, incident_close, launch, propose_track, propose_broadcast]
+  fleet:    [rtb, propose_out_of_service]
+  airspace: [hold, corridor, propose_zone]
+  intel:    [evidence_tag]
+  relay:    []
+  privacy:  [propose_footage_release, privacy_check]
+  comms:    [unit_task, unit_release, advisory]
+  fire-station: []   # city mode: read-only, they only speak (L56)
+  hospital: []
+  police:   []
+  any:      [log_refusal, simulate]
+approvals:
+  watch_commander: [track, broadcast, footage_release, zone, divert_off_incident, out_of_service, standing_policy]
+  remote_pilot:    [take_control, release_control]
+  field_officer:   []      # requests, not approvals
+  incident_lead:   []      # city mode: decides leave or stay, in #ops (L58)
+  duty_doctor:     []      # city mode: decides transport or treat (L61)

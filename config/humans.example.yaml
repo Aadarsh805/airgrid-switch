@@ -1,0 +1,15 @@
+# Copy to config/humans.yaml with your real Discord username(s). One person may hold several roles.
+# switch_sender (live rooms): the stable Switch sender id, one or a list. Approvals authorise on
+# it, never on display text. Print yours: uv run python -m worldbot.switch_room --who
+# incident_lead: decides leave or stay. duty_doctor: decides transport or treat. kazum solo.
+# discord_mention: how the leave-or-stay moment names you, for a real Discord ping `<@your-user-id>`.
+# Default @<discord>.
+# Solo (default):
+humans:
+  - {discord: "kazum", switch_sender: "", roles: [watch_commander, remote_pilot, field_officer, incident_lead, duty_doctor]}
+# Team later (comment the solo block, use this):
+# humans:
+#   - {discord: "kazum", roles: [watch_commander]}
+#   - {discord: "<t1-username>", roles: [remote_pilot]}
+#   - {discord: "<t2-username>", roles: [field_officer]}
+# Remote pilots must also exist in world/airgrid.yaml `pilots` (max 4 drones each).

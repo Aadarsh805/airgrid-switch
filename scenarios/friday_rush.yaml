@@ -1,0 +1,87 @@
+name: FRIDAY-RUSH
+title: Friday Rush
+seed: DRONE-01
+day: Friday
+start: "17:00"
+end: "20:00"
+initial:                          # 17:00 brief (battery %, state). 3 airborne + 11 docked = 14.
+  airborne:
+    D-02: {battery: 60, mission: patrol, loop: NORTH, pilot: DP-1}
+    D-07: {battery: 70, mission: patrol, loop: CENTRAL, pilot: DP-1}
+    D-10: {battery: 74, mission: patrol, loop: SOUTH, pilot: DP-2}
+  docked:
+    D-01: {battery: 100, at: P1}
+    D-03: {battery: 100, at: P3}
+    D-04: {battery: 100, at: P4}
+    D-05: {battery: 92, at: P5}
+    D-06: {battery: 100, at: P6}
+    D-08: {battery: 100, at: P8}
+    D-09: {battery: 100, at: P9}
+    D-11: {battery: 88, at: P11}
+    D-12: {battery: 100, at: P12}
+    D-13: {battery: 100, at: HUB-A}
+    D-14: {battery: 95, at: HUB-A}
+
+# World events (the scenario pushes the world)
+events:
+  - {t: "17:00", type: shift_brief}
+  - {t: "17:12", type: cad_alert, incident: INC-1, kind: accident, at: ring_road_j9, note: "3 vehicles, lanes blocked"}
+  - {t: "17:25", type: dock_fault, dock: P9, note: "lid sensor fault; dock offline until 19:00"}
+  - {t: "17:40", type: cad_alert, incident: INC-2, kind: robbery, at: market_street, note: "chain-snatching; suspect fleeing on a scooter"}
+  - {t: "18:20", type: weather, sectors: [NW, NE], wind_ms: 13, until: "18:50"}
+  - {t: "19:00", type: dock_restored, dock: P9}
+
+suspect_path:                     # scenario data; the OUTCOME is not scripted (baseline loses him)
+  - {t: "17:40", at: [3.60, 3.00]}
+  - {t: "17:45", at: [3.75, 1.00]}
+  - {t: "17:49", at: [5.25, 1.00]}
+  - {t: "17:53", at: [5.25, 2.40]}
+  - {t: "17:55", at: [5.75, 2.60]}   # inside RED-AIRFIELD (ground vehicles may enter; drones may not)
+  - {t: "18:01", at: [5.80, 4.30]}   # exits north
+  - {t: "18:05", at: [4.60, 4.80]}
+  - {t: "18:07", at: [4.40, 5.00]}   # detained
+
+# Golden managed run: the human/agent decisions (rotations, backfills and landings are automatic policy, not listed)
+golden_actions:
+  - {t: "17:12.5", act: launch, drone: D-09, mission: incident, incident: INC-1, to: ring_road_j9, pilot: kazum, basis: auto_policy}
+  - {t: "17:16",   act: launch, drone: D-05, mission: incident, incident: INC-1, to: [0.75, 2.2], pilot: kazum, basis: auto_policy, note: "upstream queue on Ring Road feeder"}
+  - {t: "17:17",   act: approve, what: loudspeaker, drone: D-09, by: kazum}
+  - {t: "17:21",   act: release_unit, unit: patrol_car_2, note: "feed shows minor injuries"}
+  - {t: "17:32",   act: rtb, drone: D-05}
+  - {t: "17:35",   act: rtb, drone: D-09, note: "accident cleared"}
+  - {t: "17:41",   act: approve, what: track, incident: INC-2, by: kazum, scope: "suspect vehicle only; district; 30 min"}
+  - {t: "17:41",   act: divert, drone: D-13, mission: track, incident: INC-2, pilot: kazum, note: "airborne over Market St: eyes on a moving target now beats a full battery 90 s later"}
+  - {t: "17:42",   act: launch, drone: D-14, mission: perimeter, incident: INC-2, to: market_street, pilot: kazum, basis: chase_authorisation}
+  - {t: "17:52",   act: refuse, code: PRIVACY_POLICY, request: "run face recognition on the market crowd", by: kazum_as_field_officer}
+  - {t: "17:55",   act: refuse, code: NO_FLY_ZONE, request: "route the tracker straight through the airfield", by: kazum}
+  - {t: "17:55",   act: hold, drone: TRACKER, at_boundary: RED-AIRFIELD}
+  - {t: "17:55",   act: launch, drone: D-04, mission: corridor, incident: INC-2, to: [5.45, 4.45], pilot: kazum, basis: chase_authorisation, note: "north exit watch via legal corridor"}
+  - {t: "17:56",   act: launch, drone: D-08, mission: corridor, incident: INC-2, to: [5.45, 2.05], pilot: kazum, basis: chase_authorisation, note: "south exit watch"}
+  - {t: "18:01",   act: reacquire, drone: D-04}
+  - {t: "18:03",   act: take_control, drone: D-04, pilot: kazum}
+  - {t: "18:04",   act: launch, drone: D-03, mission: corridor, incident: INC-2, to: [4.4, 5.0], pilot: kazum, expect: PILOT_SATURATED, fallback_pilot: DP-2}
+  - {t: "18:07",   act: close_incident, incident: INC-2, note: "suspect detained by ground units"}
+  - {t: "18:08",   act: refuse, code: MISSION_EXPIRED, request: "keep D-14 over the market crowd just in case", by: kazum}
+  - {t: "18:08",   act: rtb_incident, incident: INC-2}
+
+# Feed facts: revealed to `airgrid feed` only once a drone of that incident is on station (no identities, ever)
+feed:
+  - {incident: INC-1, t: "17:14", fact: {vehicles: 3, injuries: "2 minor, walking", lanes_blocked: "eastbound lane 2", fire: none}, confidence: direct}
+  - {incident: INC-1, t: "17:18", fact: {queue_upstream_km: 1.1, feeder: "Ring Road west feeder"}, confidence: direct}
+  - {incident: INC-1, t: "17:33", fact: {lanes_blocked: none, tow: "cleared"}, confidence: direct}
+  - {incident: INC-2, t: "17:42", fact: {suspect_vehicle: "red scooter, rider in grey hoodie, no helmet", heading: "south on Market St"}, confidence: direct}
+  - {incident: INC-2, t: "17:53", fact: {heading: "east toward old airfield fence"}, confidence: direct}
+  - {incident: INC-2, t: "17:56", fact: {suspect_vehicle: "inside airfield (out of view)"}, confidence: partial}
+  - {incident: INC-2, t: "18:01", fact: {suspect_vehicle: "red scooter exiting airfield north gate", heading: "west toward J4"}, confidence: direct}
+
+# Ground units (radio lines are templates in worldbot/lines.py)
+units_golden:
+  - {t: "17:13", act: task_unit, unit: patrol_car_2, incident: INC-1}
+  - {t: "17:13", act: task_unit, unit: ambulance_1, incident: INC-1}
+  - {t: "17:41", act: task_unit, unit: patrol_car_5, incident: INC-2}
+  - {t: "17:41", act: task_unit, unit: patrol_car_7, incident: INC-2}
+  - {t: "18:02", act: task_unit, unit: patrol_car_9, incident: INC-2, note: "vectored to J4 from D-04 feed"}
+
+expected:   # from tools/fleet_check.py (golden) — the sim's golden test asserts these
+  managed: {eyes_on_inc1_s: 114, handoff: "17:48:06 D-13→D-12", reacquire: "18:01 D-04", detained: "18:07", coverage_pct: 93.9, flights: 27, lowest_landing_pct: 42, ready_floor_min: 4, reserve_breaches: 0, red_zone_entries: 0}
+  baseline: {eyes_on_inc1_min: 17.0, robbery: "van airborne 18:08:42, suspect lost", coverage_pct_approx: 9, units_released_early: 0}

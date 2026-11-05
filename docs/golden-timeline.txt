@@ -1,0 +1,112 @@
+=== FRIDAY RUSH — golden managed run (computed) ===
+17:08:06  🔄 D-03 launches for NORTH (relief for D-02 at 48%)
+17:09:30  ↩ D-02 RTB relieved by D-03 on NORTH → P2 (battery 46%)
+17:10:24  🛬 D-02 lands at P2 with 44%
+   17:12  🚨 INC-1 accident at ring_road_j9
+17:12:30  🚀 D-09 → incident INC-1 (100%, pilot kazum, basis auto_policy)
+17:13:54  👁 EYES-ON INC-1 by D-09 (114 s after alert, battery 97%)
+17:14:42  🔄 D-13 launches for CENTRAL (relief for D-07 at 48%)
+   17:16  🚀 D-05 → incident INC-1 (100%, pilot kazum, basis auto_policy)
+17:16:24  ↩ D-07 RTB relieved by D-13 on CENTRAL → P7 (battery 45%)
+   17:17  🔐 loudspeaker approved by kazum
+17:17:18  🛬 D-07 lands at P7 with 44%
+17:17:24  🔄 D-11 launches for SOUTH (relief for D-10 at 48%)
+17:18:48  ↩ D-10 RTB relieved by D-11 on SOUTH → P10 (battery 46%)
+17:19:42  🛬 D-10 lands at P10 with 44%
+   17:21  ✅ patrol_car_2 released early (feed shows minor injuries)
+   17:25  ⚠ dock P9 OFFLINE (lid sensor fault; dock offline until 19:00)
+   17:32  ↩ D-05 RTB incident task done → P5 (battery 76%)
+17:32:48  🛬 D-05 lands at P5 with 74%
+   17:35  🅿 D-09 nearest dock P9 unavailable → DOCK_OFFLINE, rerouting
+   17:35  🅿 D-09 nearest dock P10 unavailable → DOCK_FULL, rerouting
+   17:35  ↩ D-09 RTB accident cleared → HUB-B (battery 66%)
+   17:37  🛬 D-09 lands at HUB-B with 62%
+   17:40  🚨 INC-2 robbery at market_street
+   17:41  🔐 track approved by kazum — scope: suspect vehicle only; district; 30 min
+   17:41  🎯 D-13 diverted from CENTRAL patrol to TRACK INC-2 at 60%
+   17:41  🔄 D-07 launches for CENTRAL (backfill — loop uncovered)
+   17:42  🚀 D-14 → perimeter INC-2 (100%, pilot kazum, basis chase_authorisation)
+17:42:36  🔄 D-02 launches for NORTH (relief for D-03 at 48%)
+   17:44  ↩ D-03 RTB relieved by D-02 on NORTH → P3 (battery 46%)
+17:44:48  🛬 D-03 lands at P3 with 44%
+17:47:24  🤝 relay planned: D-12 launches to relieve D-13 (45%)
+17:48:06  🤝 HANDOFF D-13 → D-12 (gap 0 s); D-13 at 43%
+17:48:06  ↩ D-13 RTB track handed off → P12 (battery 43%)
+17:48:30  🛬 D-13 lands at P12 with 42%
+17:51:54  🔄 D-10 launches for SOUTH (relief for D-11 at 48%)
+   17:52  ⛔ PRIVACY_POLICY: 'run face recognition on the market crowd'
+17:53:18  ↩ D-11 RTB relieved by D-10 on SOUTH → P11 (battery 46%)
+17:54:06  🛬 D-11 lands at P11 with 44%
+   17:55  ⛔ NO_FLY_ZONE: 'route the tracker straight through the airfield'
+   17:55  ⛔ D-12 holds at RED-AIRFIELD boundary (battery 82%)
+   17:55  🚀 D-04 → corridor INC-2 (100%, pilot kazum, basis chase_authorisation)
+   17:56  🚀 D-08 → corridor INC-2 (100%, pilot kazum, basis chase_authorisation)
+   18:01  🎯 D-04 reacquires suspect at [5.8, 4.3] (battery 91%); D-12 keeps boundary hold
+   18:03  🕹 kazum has manual control of D-04 (pilot load 4/4)
+   18:04  ❌ REJECTED D-03 under kazum: PILOT_SATURATED (['D-04', 'D-08', 'D-12', 'D-14']) → DP-2
+   18:04  🚀 D-03 → corridor INC-2 (100%, pilot DP-2, basis )
+   18:07  🚓 INC-2 closed: suspect detained by ground units
+   18:08  ⛔ MISSION_EXPIRED: 'keep D-14 over the market crowd just in case'
+   18:08  ↩ D-03 RTB INC-2 closed → P3 (battery 94%)
+   18:08  🅿 D-04 nearest dock P3 unavailable → DOCK_FULL, rerouting
+   18:08  ↩ D-04 RTB INC-2 closed → P4 (battery 74%)
+   18:08  ↩ D-08 RTB INC-2 closed → P8 (battery 82%)
+   18:08  🅿 D-12 nearest dock P8 unavailable → DOCK_FULL, rerouting
+   18:08  ↩ D-12 RTB INC-2 closed → P7 (battery 63%)
+   18:08  🅿 D-14 nearest dock P7 unavailable → DOCK_FULL, rerouting
+   18:08  ↩ D-14 RTB INC-2 closed → HUB-A (battery 61%)
+18:08:42  🛬 D-03 lands at P3 with 92%
+18:08:54  🛬 D-04 lands at P4 with 72%
+   18:09  🛬 D-08 lands at P8 with 80%
+18:09:12  🛬 D-14 lands at HUB-A with 58%
+   18:10  🛬 D-12 lands at P7 with 59%
+18:15:30  🔄 D-09 launches for CENTRAL (relief for D-07 at 48%)
+18:17:06  🔄 D-03 launches for NORTH (relief for D-02 at 48%)
+18:17:12  🅿 D-07 nearest dock P7 unavailable → DOCK_FULL, rerouting
+18:17:12  🅿 D-07 nearest dock P6 unavailable → DOCK_FULL, rerouting
+18:17:12  ↩ D-07 RTB relieved by D-09 on CENTRAL → HUB-A (battery 45%)
+18:18:24  🛬 D-07 lands at HUB-A with 43%
+18:18:30  ↩ D-02 RTB relieved by D-03 on NORTH → P2 (battery 46%)
+18:19:24  🛬 D-02 lands at P2 with 44%
+   18:20  🌬 wind 13 m/s > 12 in ['NW', 'NE'] → WEATHER_GROUNDED until 18:50
+   18:20  ↩ D-03 RTB WEATHER_GROUNDED → P3 (battery 95%)
+18:20:48  🛬 D-03 lands at P3 with 94%
+18:26:24  🔄 D-11 launches for SOUTH (relief for D-10 at 48%)
+18:27:48  ↩ D-10 RTB relieved by D-11 on SOUTH → P10 (battery 46%)
+18:28:42  🛬 D-10 lands at P10 with 44%
+   18:50  🌬 wind back under limit, ['NW', 'NE'] reopened
+   18:50  🔄 D-02 launches for NORTH (backfill — loop uncovered)
+   18:50  🔄 D-07 launches for CENTRAL (relief for D-09 at 48%)
+18:51:42  🅿 D-09 nearest dock P6 unavailable → DOCK_FULL, rerouting
+18:51:42  🅿 D-09 nearest dock P7 unavailable → DOCK_FULL, rerouting
+18:51:42  ↩ D-09 RTB relieved by D-07 on CENTRAL → HUB-A (battery 45%)
+18:52:48  🛬 D-09 lands at HUB-A with 43%
+   19:00  ✔ dock P9 back online
+19:00:54  🔄 D-10 launches for SOUTH (relief for D-11 at 48%)
+19:02:18  ↩ D-11 RTB relieved by D-10 on SOUTH → P11 (battery 46%)
+19:03:06  🛬 D-11 lands at P11 with 44%
+19:24:30  🔄 D-03 launches for NORTH (relief for D-02 at 48%)
+19:24:30  🔄 D-09 launches for CENTRAL (relief for D-07 at 48%)
+19:25:54  ↩ D-02 RTB relieved by D-03 on NORTH → P2 (battery 46%)
+19:26:12  🅿 D-07 nearest dock P7 unavailable → DOCK_FULL, rerouting
+19:26:12  🅿 D-07 nearest dock P6 unavailable → DOCK_FULL, rerouting
+19:26:12  ↩ D-07 RTB relieved by D-09 on CENTRAL → HUB-A (battery 45%)
+19:26:48  🛬 D-02 lands at P2 with 44%
+19:27:24  🛬 D-07 lands at HUB-A with 43%
+19:35:24  🔄 D-11 launches for SOUTH (relief for D-10 at 48%)
+19:36:48  ↩ D-10 RTB relieved by D-11 on SOUTH → P10 (battery 46%)
+19:37:42  🛬 D-10 lands at P10 with 44%
+   19:59  🔄 D-02 launches for NORTH (relief for D-03 at 48%)
+   19:59  🔄 D-07 launches for CENTRAL (relief for D-09 at 48%)
+
+=== Scorecard (managed vs baseline) ===
+eyes-on accident: 114 s  vs baseline van 17.0 min
+robbery: tracked, detained 18:07  vs baseline van eyes at 18:08:42 → suspect LOST (outside 0.5 km search)
+ground units released early: 1 vs 0
+patrol junction coverage 17:00–20:00: 93.9%  vs baseline ~9%
+coverage by loop (min): NORTH 149, CENTRAL 179, SOUTH 180
+refusals enforced: 5 → MISSION_EXPIRED, NO_FLY_ZONE, PILOT_SATURATED, PRIVACY_POLICY, WEATHER_GROUNDED
+fleet: 12/14 drones flew, 27 flights, lowest landing battery 42.2% (reserve 25%)
+ready floor: minimum 4 READY drones (at 17:56)
+
+OK — 0 violations

@@ -1,0 +1,28 @@
+# PROGRESS
+
+| Phase | What | Gate | Status | Date |
+|---|---|---|---|---|
+| 01 | Bootstrap | pytest green · `/health` · ruff clean | ✅ PASS | Oct 29 |
+| 02 | Sim core | golden = checker · determinism · **⛔ G1** | ✅ PASS · G1 signed | Oct 29 |
+| 03 | Rules + actions | every code reject/pass · golden still matches | ✅ PASS | Oct 30 |
+| 04 | World dynamics + baseline | managed beats baseline · triggers · 20 seeds | ✅ PASS | Oct 30 |
+| 05 | CLI + World Bot (FakeRoom) | CLI 0/2/1 · leak grep · FakeRoom golden | ✅ PASS | Oct 30 |
+| 06 | Agents headless | `pytest -m agents` 3× · **⛔ G2** | ✅ PASS · G2 signed | Oct 31 |
+| 07 | Dashboard (parallel lane) | screenshots at 5 beats, no console errors | — | |
+| 08 | Switch live | **⛔ G3** | — | |
+| 09 | Ship | **⛔ G4** | — | |
+
+## Human gates (kazum signs here)
+- G1: ✅ signed — kazum, Oct 29 (in chat: "yeah ig continue next phase"), after the 0-diff golden summary
+- G2: ✅ signed — kazum, Oct 31 (in chat: "G2 signed"), after the headless transcript and listed caveats. `approve A-0002` by dispatch at transcript line 142 traced: deliberate spoof test, rejected FORBIDDEN_ROLE.
+- G3: _
+- G4: _
+
+## Log
+- **Oct 29 · Phase 01 PASS.** `uv sync` 32 packages · `pytest -q` 5 passed · ruff check + format clean (`tools/` excluded, L27) · validator "125 checks, 0 errors" · checker "0 violations" · `GET /health` → `{"ok":true,"service":"airgrid-sim","simulated":true}` · `airgrid status` exit 0 live, exit 1 on a dead port. `/ui/` 404 until the dashboard lane adds `index.html` (expected). Reviewer: PASS, no FAILs; fixed script exec bits, pytest warning filter. Decisions: L26 (no Switch Decisions/Tasks panels → room documents), L27.
+- **Oct 29 · Phase 02 gate PASS.** `scripts/run_golden.sh FRIDAY-RUSH` → "99 lines, 0 diffs vs golden-timeline.txt, 0 violations"; the event section is byte-identical to the checker. Coverage 93.9%, 27 flights, lowest landing 42.2%, eyes-on 114 s, ready floor 4 at 17:56. Two runs give the same event_hash `45356e7fa9f7e359`. QUIET-SHIFT: 28 lines, 100.0% coverage, 0 violations. `pytest -q` 144 passed, ruff clean, validator 125/0, checker 0 violations. Live server: at 17:49 D-12 is on track after the 0-gap handoff; at 17:58 the suspect is null (inside the airfield); SSE sends snapshot + tick diffs + events. Reviewer PASS; fixed: policy literals moved to world (L30), 422 shape, unique golden filenames. Decisions L28–L30.
+- **Oct 30 · Phase 03 PASS.** 14 reason codes, each a pure validator with a rejecting and a passing test; `POST /actions` role-checked by bearer token; approvals (A-0001 standing policy, A-0002 loudspeaker, A-0003 track) decided only by a human token; authorisations expire into MISSION_EXPIRED; recording derived, privacy_log append-only (PUT/DELETE → 405, SQLite triggers); `request_face_id` always PRIVACY_POLICY and logged; decisions_log row for every write and rejection. Golden: 99 lines, 0 diffs, same hash `45356e7fa9f7e359`; the 17:52/17:55/18:04/18:08 refusals now come from validators (decisions rows: kazum request_face_id PRIVACY_POLICY; airspace corridor_watch NO_FLY_ZONE; dispatch launch PILOT_SATURATED; dispatch assign_perimeter MISSION_EXPIRED). Live: agent approve → 403 FORBIDDEN_ROLE, face ID → 409 PRIVACY_POLICY. `pytest -q` 268 passed, ruff clean. Reviewer PASS; 6 gaps fixed (L33), plus an auto-launch bug found by tests (L34). Decisions L31–L34.
+- **Oct 30 · Phase 04 PASS.** `run_golden.sh`: 99 lines, 0 diffs, scorecard 11 lines, 0 diffs, 0 violations; whole file identical to the checker apart from the header. `run_baseline.sh`: managed wins 5/5 counted lines (eyes-on 114 s vs 17.0 min; tracked and detained vs lost; 1 vs 0 released; 93.9% vs ~9% coverage; 21.5 vs 0 unit-minutes), safety checks ok, first unit on scene info row 17:19:30 vs 17:18:30 (managed 1 min slower). `pytest -q` 457 passed, ruff clean, validator 125/0, checker 0 violations. First review FAILED (fact leak in a hint, weak evidence check, bad trigger input, future baseline data in /kpi, WIN labels on ties); all 11 items fixed and re-verified by the lead with the same gate, not re-reviewed. Decisions L35–L39.
+- **Oct 30 · Phase 05 PASS.** Full `airgrid` CLI (exit 0/2/1 per command, all 14 reason codes reachable), World Bot on FakeRoom (cards, chat approvals by mapped human and role, simulated lines, fake decision sink, @mention of the owning agent). `scripts/demo_run.py` drives FRIDAY-RUSH with every agent-side step through the CLI and human approvals through chat: 237 room messages, 30.3 s, golden outcome reproduced. Golden 99 lines + scorecard 0 diffs, 0 violations, hash `0d7f86b7cb8e6582`. Baseline: 5/5 counted lines. `pytest -q` 1197 passed in 9 min, ruff clean. Reviewer: conditional pass (CLI couldn't drive the golden flow; demo_run hid it with raw API calls). All fixed and re-verified by the lead with the gate, not re-reviewed. Live checks at review time: agent approve → exit 2 FORBIDDEN_ROLE; spoofed approvals failed; no token in output. Decisions L41–L43.
+- **Oct 31 · Phase 06 gate PASS.** Seven agents on Claude Code, install with CLI only (L11). `pytest -m agents`: 12 passed on 3 consecutive runs (Sonnet). Live headless FRIDAY-RUSH, `docs/headless-transcript-G2.md`: 19 turns, USD 0.60, 0 non-refusal diffs, 0 scorecard diffs, no stubs, no bad turns, 4 scripted kazum asks and 26 conductor steps listed. First reviewer run FAILED (checks too lenient: scorecard not compared, `unknown` fields passed, extras ignored); fixed under L47, verified by the gate, not re-reviewed. Decisions L44–L48.
+- Oct 31 · `pytest -q` 1313 passed, 12 deselected (agents), after the final checker change.

@@ -1,0 +1,8 @@
+# Live trigger menu (dashboard buttons → POST /trigger). Each spawns events at "now" (+ offsets in sim-min).
+fire:            {cad_alert: {kind: fire, at: [2.25, 3.4], note: "smoke from a shop roof"}, auto_launch: true, thermal_preferred: true}
+missing_child:   {cad_alert: {kind: missing_person, at: [4.2, 2.2], note: "child, 7, red jacket, last seen at bus stop"}, auto_launch: true, search_pair: true}
+underpass_flood: {cad_alert: {kind: flood, at: [3.0, 1.6], note: "water over the underpass"}, auto_launch: true}
+drone_fault:     {drone_fault: {pick: tightest_airborne, kind: motor_temp}, effect: "safety RTB now, out of service pending approval"}
+unauthorised_drone: {airspace_intrusion: {at: [1.0, 5.2]}, effect: "SEPARATION hold in NW for 5 min, Airspace announces"}
+vip_zone:        {approval: {type: zone, id: VIP-TEMP, until_offset: 60}, effect: "zone active after approval; routes through it NO_FLY_ZONE"}
+officer_request: {room_message: {room: field-units, text: "FO: @dispatch need eyes on the north exit of the market"}}

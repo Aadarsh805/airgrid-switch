@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# `airgrid` for runtime agents. Installed to <agents home>/_bin/ next to a standalone cli copy.
+# Runs from an agent's directory: AIRGRID_API_URL, AIRGRID_ROLE and AIRGRID_TOKEN come from ./.env
+# (they beat the inherited environment, so identity follows the working directory).
+# The repo is never on the import path (L11, L44).
+#
+# AIRGRID_CLI_LOG=<file> appends each call for the headless harness:
+#   >>> airgrid <args, shell-quoted>
+#   <stdout>
+#   <<< exit <code>
+# Exit codes are the CLI's: 0 ok, 2 rejected, 1 error.
+set -u
+
+bin_dir=$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
+cli="$bin_dir/airgrid.py"
+
+if [ ! -f "$cli" ]; then
+    echo "error: no standalone CLI at $cli; run scripts/install_agents.sh" >&2
+    exit 1
+fi
+if ! command -v uv >/dev/null 2>&1; then
+    echo "error: uv not found on PATH" >&2
+    exit 1
+fi
+
+if [ -f .env ]; then
+    # Parsed, never sourced. Only the three keys are taken.
+    while IFS= read -r line || [ -n "$line" ]; do
+        line=${line%$'\r'}
+        case "$line" in
+            AIRGRID_API_URL=* | AIRGRID_ROLE=* | AIRGRID_TOKEN=*)
+                export "${line%%=*}=${line#*=}"
+                ;;
+        esac
+    done <.env
+fi
+
+unset PYTHONPATH PYTHONHOME VIRTUAL_ENV
+
+# Git Bash rewrites arguments that look like POSIX paths ("/a/b" in a --why) for native programs.
+# Off for the agent's arguments; the one real path is converted here instead.
+if command -v cygpath >/dev/null 2>&1; then
+    cli=$(cygpath -m "$cli")
+    export MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*'
+fi
+
+run() {
+    uv run --quiet --no-project --python 3.12 --with typer --with httpx python "$cli" "$@"
+}
+
+if [ -z "${AIRGRID_CLI_LOG:-}" ]; then
+    run "$@"
+    exit $?
+fi
+
+{
+    printf '>>> airgrid'
+    printf ' %q' "$@"
+    printf '\n'
+} >>"$AIRGRID_CLI_LOG"
+run "$@" | tee -a "$AIRGRID_CLI_LOG"
+code=${PIPESTATUS[0]}
+printf '<<< exit %s\n' "$code" >>"$AIRGRID_CLI_LOG"
+exit "$code"

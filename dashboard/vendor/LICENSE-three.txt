@@ -1,0 +1,30 @@
+three.js 0.160.0 (npm: three@0.160.0), MIT licence. Vendored unmodified, no build step:
+  three.module.min.js  from build/
+  OrbitControls.js     from examples/jsm/controls/
+3e690ac7d180b0aadf0891bea39eec643e29e2d3e75c99b18689518665f69ba6 *package/build/three.module.min.js
+5a44a9e86a2a0fb11933eed69bc2cd33c76a496854c1aed6ed776efa87d7b064 *package/examples/jsm/controls/OrbitControls.js
+
+The MIT License
+
+Copyright © 2010-2023 three.js authors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+Also vendored unmodified from three@0.160.0: examples/jsm/loaders/GLTFLoader.js and
+examples/jsm/utils/BufferGeometryUtils.js (paths kept under vendor/jsm/).
