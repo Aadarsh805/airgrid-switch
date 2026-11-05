@@ -817,11 +817,18 @@ async def city_start(request: Request, body: CityStartBody | None = None):
     return _game_body(c.view())
 
 
+def _is_operator(request: Request) -> bool:
+    """The operator key, checked quietly: a keyless poll is normal (agents, CLI), not an attempt."""
+    want = os.environ.get("AIRGRID_GAME_KEY", "")
+    got = request.headers.get("x-game-key", "")
+    return bool(want) and hmac.compare_digest(want.encode(), got.encode())
+
+
 @app.get("/city")
-async def city_get(since: int = 0):
+async def city_get(request: Request, since: int = 0):
     if S.city is None:
         return _game_body(city.idle_view(S.world))
-    return _game_body(S.city.view(since))
+    return _game_body(S.city.view(since, operator=_is_operator(request)))
 
 
 class CityTriggerBody(BaseModel):

@@ -1011,3 +1011,16 @@ def test_found_fire_is_not_a_zero_second_response():
     assert inc["found_by"]["found_s"] > 0
     run(c, 2)
     assert c.responses == []
+
+
+def test_unfound_fire_only_on_the_operator_screen(api):
+    """L63: the keyed dashboard draws the fire burning; keyless callers still learn nothing."""
+    api.post("/city/start", json={"paused": True}, headers=H)
+    api.post("/city/trigger", json={"kind": "random_fire"}, headers=H)
+    (h,) = S.city.hidden
+    keyed = api.get("/city", headers=H).json()
+    assert [u["at"] for u in keyed["unfound"]] == [list(h["at"])]
+    assert "unfound" not in api.get("/city").json()
+    assert "unfound" not in api.get("/city", headers={"X-Game-Key": "wrong"}).json()
+    S.city._confirm(h, next(iter(S.engine.drones.values())))
+    assert api.get("/city", headers=H).json()["unfound"] == []

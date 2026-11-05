@@ -93,7 +93,7 @@ PowerShell, from the repo. The city runs without any of this: Discord is the com
 5. Switch Console → **Configuration** → Instructions: paste `agents/switch/rooms/ops.txt` in `#ops`, and `agents/switch/rooms/incident-city.txt` in both incident rooms.
 6. `config/humans.yaml` already gives kazum the role `incident_lead` (for a teammate later, move it to them; they need a `switch_sender` too). So the YOUR CALL line reaches you, add `discord_mention: "<@YOUR_DISCORD_USER_ID>"` beside `discord:` (Discord → Developer Mode → right-click your name → Copy User ID). ⚠ Whether Switch passes `<@id>` through to Discord as a ping is unconfirmed; if it shows as text, try `@yourname`.
 7. Run it: `& $bash scripts/run_game.sh --discord`, then open the printed URL. Don't share it: the key in it is the operator key.
-8. Trigger a fire. `#ops` gets the start, 🙋 your calls and the report (`config/humans.yaml` now also gives kazum `duty_doctor`; an injured accident adds a `transport` or `treat` call). Crews talk in the incident room. Type `leave` or `stay`, no @mention, in either room. Also try `@dispatch ask police to stay until the tow arrives` in the incident room.
+8. Trigger a fire. `#ops` gets the start and the report; 🙋 your calls come in the incident room (`config/humans.yaml` now also gives kazum `duty_doctor`; an injured accident adds a `transport` or `treat` call). Crews talk in the incident room. Type `leave` or `stay`, no @mention, in the incident room. Also try `@dispatch ask police to stay until the tow arrives` in the incident room.
 
    If agents are silent on handoffs from each other, check each is on **Me and my agents** (the bot and all four must have one owner).
 

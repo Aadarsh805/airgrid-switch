@@ -18,6 +18,7 @@ const STAGE = {
   care_call: "Crew treating patients", transporting: "Ambulance heading to the Hospital",
   blocked: "Ambulance stopped by traffic",
   watching: "Drone watching", holding: "Drone staying a little longer",
+  unfound: "Fire burning · patrols searching",
 };
 const ICON = { fire: "🔥", accident: "💥" };
 const STATION_ICON = { fire: "🚒", hospital: "🏥", police: "🚓" };
@@ -168,9 +169,18 @@ export class CityFx {
     v.vehicles.forEach((x, i) => this.syncVehicle(x, i, now));
     this.syncRooms(v);
     this.syncJams(v, now);
-    const live = new Set(v.incidents.map((i) => i.id));
-    for (const [id, s] of this.scenes) if (!live.has(id)) this.dropScene(id, s);
+    // fires burning that no drone has found yet (operator view only, L63): flames, no beacon
+    const unfound = (v.unfound || []).map((u) => ({ id: u.id, kind: "fire", at: u.at, stage: "unfound", name: "Not reported yet", since_s: u.since_s }));
+    const all = [...v.incidents, ...unfound];
+    // once a drone confirms it, the same burning spot becomes the incident: keep its scene
     for (const inc of v.incidents) {
+      if (this.scenes.has(inc.id) || !inc.found_by) continue;
+      const key = [...this.scenes.keys()].find((k) => k.startsWith("unfound-") && String(this.scenes.get(k).inc.at) === String(inc.at));
+      if (key) { const s = this.scenes.get(key); this.scenes.delete(key); const t = this.city.tags.get(`p:${key}`); this.city.tags.delete(`p:${key}`); if (t) this.city.tags.set(`p:${inc.id}`, t); this.scenes.set(inc.id, s); }
+    }
+    const live = new Set(all.map((i) => i.id));
+    for (const [id, s] of this.scenes) if (!live.has(id)) this.dropScene(id, s);
+    for (const inc of all) {
       if (!this.scenes.has(inc.id)) {
         this.scenes.set(inc.id, this.makeScene(inc));
         this.focus = inc.at;
@@ -450,7 +460,7 @@ export class CityFx {
     const working = inc.stage === "working" || inc.stage === "care_call";
     const line = working && inc.progress_label ? inc.progress_label : STAGE[inc.stage] || inc.stage;
     const ask = inc.decision;
-    const room = ask?.role === "duty_doctor" ? this.rooms.get(inc.id) || "#incident-1" : "#ops";
+    const room = this.rooms.get(inc.id) || "#incident-1"; // every call is in the incident room (L63)
     const title = ask ? `◆ Waiting for the ${ROLE[ask.role] || "team"} in ${room}` : `${ICON[inc.kind] || ""} ${line}`;
     s.tag.el.classList.toggle("wait", !!ask);
     if (s.title.textContent !== title) s.title.textContent = title;
@@ -462,7 +472,8 @@ export class CityFx {
     if (s.sub.textContent !== sub) s.sub.textContent = sub;
     s.ring.style.setProperty("--p", working ? inc.progress_pct : inc.stage === "watching" || inc.stage === "holding" ? 100 : 0);
     s.ring.classList.toggle("idle", !working);
-    s.heat = working ? Math.max(0.08, 1 - inc.progress_pct / 100) : inc.stage === "alert" || inc.stage === "responding" ? 1 : 0;
+    s.heat = working ? Math.max(0.08, 1 - inc.progress_pct / 100) : ["alert", "responding", "unfound"].includes(inc.stage) ? 1 : 0;
+    s.unfound = inc.stage === "unfound";
     s.props.visible = inc.kind === "fire" || !["watching", "holding"].includes(inc.stage);
   }
 
@@ -480,10 +491,10 @@ export class CityFx {
     for (const l of this.lamps) l.intensity = 0;
     for (const s of this.scenes.values()) {
       const alert = s.heat >= 1;
-      s.beacon.visible = alert;
+      s.beacon.visible = alert && !s.unfound; // nobody has reported it: no alert beacon yet
       s.beacon.material.opacity = 0.26 + 0.16 * Math.sin(wall * 4);
       const p = (wall * 0.6) % 1;
-      s.wave.visible = s.heat > 0;
+      s.wave.visible = s.heat > 0 && !s.unfound;
       s.wave.scale.setScalar(1 + p * 4.5);
       s.wave.material.opacity = 0.7 * (1 - p);
       for (const f of s.flames) {

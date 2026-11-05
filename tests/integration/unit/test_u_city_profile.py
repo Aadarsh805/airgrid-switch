@@ -185,10 +185,11 @@ def test_one_incident_stays_within_the_room_limits(switch, city_sim, tmp_path, k
 
     asyncio.run(asyncio.wait_for(go(), 90))
     print(f"\n{kind}: #ops {counts(switch, OPS)}, #incident-1 {counts(switch, INC1)}")
-    care_calls = sum("`transport`" in t for t in in_room(switch, OPS))
-    assert counts(switch, OPS) == 3 + care_calls, in_room(switch, OPS)
+    care_calls = sum("`transport`" in t for t in in_room(switch, INC1))
+    assert counts(switch, OPS) == 2, in_room(switch, OPS)  # start + report: info only (L63)
+    assert not [t for t in in_room(switch, OPS) if t.startswith("🙋")]
     escort = 7 if care_calls else 0
-    assert 2 <= counts(switch, INC1) <= 5 + escort, in_room(switch, INC1)
+    assert 2 <= counts(switch, INC1) <= 6 + escort, in_room(switch, INC1)
     assert counts(switch, INC2) == 0
 
 
@@ -200,9 +201,10 @@ def test_every_incident_stays_within_limits_including_injuries(switch, city_sim,
 
     asyncio.run(asyncio.wait_for(go(), 120))
     started = sum("Crews are working" in t for t in in_room(switch, OPS))  # flare-ups count
-    care_calls = sum("`transport" in t for t in in_room(switch, OPS))
-    assert counts(switch, OPS) <= 3 * started + care_calls
-    assert counts(switch, INC1) + counts(switch, INC2) <= 5 * started + 7 * care_calls
+    rooms = in_room(switch, INC1) + in_room(switch, INC2)
+    care_calls = sum("`transport" in t for t in rooms)
+    assert counts(switch, OPS) <= 2 * started + 2  # a "Nothing is waiting" reply or two
+    assert counts(switch, INC1) + counts(switch, INC2) <= 6 * started + 7 * care_calls
     per = " ".join(in_room(switch, INC1) + in_room(switch, INC2))
     hurt = "@hospital" in per and "no ambulance needed" in per
     assert hurt, "both outcomes must appear or this proved nothing"
@@ -263,7 +265,7 @@ def test_overlap_uses_the_free_room_and_short_words(switch, city_sim, tmp_path):
             await run.until(lambda: run.asking(a) and run.asking(b))
             await wait_for(lambda: len(prof.asking()) == 2)
             word = prof.key(a)
-            second = next(t for t in in_room(switch, OPS) if "`leave " in t and t.startswith("🙋"))
+            second = next(t for t in texts(switch) if "`leave " in t and t.startswith("🙋"))
             assert "`stay " in second and "@" not in second.split("Reply")[1]
             switch.say(OPS, KAZUM, "kazum", "leave")
             await wait_for(lambda: any("Two calls are open" in t for t in texts(switch)))
@@ -563,9 +565,8 @@ def test_escort_lines_rooms_and_wording(tmp_path):
     asyncio.run(go())
     inc = [t for r, t in room.out if r == "#incident-1"]
     ops = [t for r, t in room.out if r == "#ops"]
-    assert len(ops) == 2 and "Crews are working" in ops[0]
-    want = "🙋 <@7> Ring Road accident: Hospital recommends transport."
-    assert ops[1] == f"{want} Reply: `transport` or `treat`."
+    assert len(ops) == 1 and "Crews are working" in ops[0]  # #ops is info only (L63)
+    assert not [t for t in inc if t.startswith("🙋")]  # the assessment line is the call
     assert len(inc) == 5 and len(inc) + 2 <= 7  # plus Police's "on it" and the doctor's confirm
     assert "<@7>" in inc[0] and "Recommend transport" in inc[0]
     assert "escorting the ambulance, route clear" in inc[1]
@@ -655,7 +656,7 @@ def test_real_escort_counts_and_report(switch, city_sim, tmp_path):
                 await full_incident(run, "accident")
                 mine = in_room(switch, INC1)[before:]
                 if any("Delivered" in t for t in mine):
-                    assert len(mine) <= 7 + 2, mine
+                    assert len(mine) <= 7 + 2 + 1, mine  # + the lead's call (L63)
                     return mine
             pytest.fail("no transport in 10 accidents")
 
@@ -702,8 +703,8 @@ def test_random_fire_posts_nothing_until_detected_then_one_heat_line(switch, cit
 
     asyncio.run(asyncio.wait_for(go(), 120))
     assert sum("🌡" in t for t in texts(switch)) == 1
-    assert counts(switch, OPS) == 3, in_room(switch, OPS)
-    assert counts(switch, INC1) <= 1 + 5, in_room(switch, INC1)
+    assert counts(switch, OPS) == 2, in_room(switch, OPS)  # start + report (L63)
+    assert counts(switch, INC1) <= 1 + 6, in_room(switch, INC1)
     assert in_room(switch, INC2) == []
 
 
@@ -766,7 +767,9 @@ def test_room_table_and_todo():
     todo = (ROOT / "HUMAN_TODO.md").read_text(encoding="utf-8")
     assert "## City mode" in todo and "airgrid-agents\\fire-station" in todo
     ops_text = (ROOT / "agents/switch/rooms/ops.txt").read_text(encoding="utf-8")
-    assert "`leave market`" in ops_text and "dashboard" not in ops_text
+    assert "information only" in ops_text and "dashboard" not in ops_text
+    inc_text = (ROOT / "agents/switch/rooms/incident-city.txt").read_text(encoding="utf-8")
+    assert "`leave market`" in inc_text
     assert "incident-city.txt" in todo and (ROOT / "agents/switch/rooms/incident-city.txt").exists()
 
 

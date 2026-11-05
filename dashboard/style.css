@@ -294,6 +294,8 @@ body.cityView .cBottom { display: flex; align-items: center; justify-content: sp
 #cFire { border-color: var(--red); }
 .cBig.wide { min-width: 0; display: grid; align-content: center; line-height: 1.05; border-color: var(--sky); }
 .cBig.wide small { font-size: .85rem; font-weight: 600; color: var(--muted); }
+.cBig.wide.searching { opacity: .55; cursor: wait; border-color: var(--hairline); }
+.cBig.wide.searching small::after { content: " · searching…"; }
 .tag3.heat { background: var(--amber); color: var(--bg); }
 #cCrash { border-color: var(--amber); }
 .cBig:hover:not(:disabled) { filter: brightness(1.25); }

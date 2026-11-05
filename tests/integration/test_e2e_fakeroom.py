@@ -206,9 +206,15 @@ def test_simulated_lines_in_the_room_are_labelled(chat_run):
 
 
 def test_owner_mentioned_on_every_alert(chat_run):
+    """Every alert names its owner, except routine ones nobody answers (QUIET_EVENTS, L51)."""
+    from worldbot.rooms import QUIET_EVENTS
+
     alerts = [t for _, t in chat_run["room"] if t.startswith("📣")]
     assert len(alerts) == len(chat_run["events"])
-    assert all(re.search(r" · @\w+$", t) for t in alerts), alerts[:3]
+    quiet = {k.upper() for k in QUIET_EVENTS}
+    loud = [t for t in alerts if t.split(" · ")[0].removeprefix("📣 ") not in quiet]
+    assert loud and all(re.search(r" · @\w+$", t) for t in loud), loud[:3]
+    assert not any(re.search(r" · @\w+$", t) for t in alerts if t not in loud)
 
 
 def test_room_alerts_never_run_ahead_of_their_event(chat_run):

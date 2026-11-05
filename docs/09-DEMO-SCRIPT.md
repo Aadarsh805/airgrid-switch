@@ -27,22 +27,22 @@ Press **Simulate accident**.
 5. ⏩ The ambulance heads to the hospital with the drone escorting it.
 6. **Traffic jam:** stopped cars on the map. Drone Ops asks `@police` to clear it. A police car arrives, the ring fills, the road clears.
    > "The drone spotted the jam and called the people who could fix it."
-7. ⏩ Patient delivered. `#ops`: **YOUR CALL**, leave or stay. Type `leave`. The report lands.
+7. ⏩ Patient delivered. Still in `#incident-1`: the lead's call, leave or stay. Type `leave`. The report lands in `#ops`.
 
 ## 1:50–2:25 · Found before anyone called
-Press **Random fire**. Nothing appears.
+Press **Random fire**. Flames appear on the map with no alert beacon.
 > "Nobody reported this one."
 
 A patrolling drone picks up a heat reading, turns, and confidence climbs to "fire confirmed". The engine goes. ⏩ Show the progress ring once.
 > "The sensor is simulated. The teamwork is the point."
 
 ## 2:25–2:45 · Close
-`#ops`: three short lines per incident, plus the reports.
+`#ops`: one start line and one report per incident. The decisions stayed in the incident rooms.
 > "Agents do the legwork, people decide, and the record writes itself. All in the chat, through Switch. The simulator owns the truth, so agents can't approve their own work. Fictional city, simulated drones."
 
 ## If something breaks
 | Problem | Do this |
 |---|---|
 | Agents silent, "My machine is offline" | Restart Switch Console; check the green dot; re-run |
-| `transport` or `leave` gets no reply | Type it in `#ops` or the incident room, from the mapped account |
+| `transport` or `leave` gets no reply | Type it in the incident room, from the mapped account |
 | Running long | Cut the random fire (1:50–2:25); it's the only optional part |

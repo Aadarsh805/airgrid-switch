@@ -329,7 +329,15 @@ class City:
         rng = random.Random(f"{eng.seed}:random_fire:{n}")
         spot = rng.choice(self._fire_spots())
         self.hidden.append(
-            {"at": spot, "t": eng.now, "drone": None, "best": 0, "status": "hidden", "sent": False}
+            {
+                "n": n,
+                "at": spot,
+                "t": eng.now,
+                "drone": None,
+                "best": 0,
+                "status": "hidden",
+                "sent": False,
+            }
         )
         actions.log_decision(eng, "operator", "city:trigger:random_fire", rationale="hidden")
         return {"kind": "random_fire", "status": "patrols searching"}
@@ -994,7 +1002,19 @@ class City:
             pct = int(min(1.0, (self.eng.now - b["start"]) / self.cfg["traffic_clear_min"]) * 100)
         return {"at": b["at"], "status": b["status"], "progress_pct": pct}
 
-    def view(self, since: int = 0) -> dict:
+    def unfound(self) -> list[dict]:
+        """Fires burning that no drone has confirmed yet. Operator screen only (L63): agents,
+        the CLI and the bot never get this, so the drone still has to find it."""
+        return [
+            {
+                "id": f"unfound-{h['n']}",
+                "at": list(h["at"]),
+                "since_s": round((self.eng.now - h["t"]) * 60),
+            }
+            for h in self.hidden
+        ]
+
+    def view(self, since: int = 0, operator: bool = False) -> dict:
         eng = self.eng
         minute = eng.now % 1440
         n = len(self.responses)
@@ -1024,6 +1044,7 @@ class City:
             "detections": self.detections(),
             "feed": list(self.feed),
             "events": [e for e in self.events if e["seq"] > since],
+            **({"unfound": self.unfound()} if operator else {}),
         }
 
 

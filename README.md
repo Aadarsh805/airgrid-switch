@@ -31,7 +31,7 @@ AirGrid puts that coordination in one team chat: the agents do the legwork, the 
 6. A report lands in `#ops`: timeline, who went, response time, recording window, minutes saved.
 
 ## Why Switch
-- **Rooms are the operation.** `#ops` shows the headlines and the decisions. `#incident-1` and `#incident-2` hold each incident's work, so two emergencies stay readable.
+- **Rooms are the operation.** `#ops` shows the headlines and the reports. `#incident-1` and `#incident-2` hold each incident's work, so two emergencies stay readable.
 - **Agents and people work the same task together.** Agents report, recommend and hand off by @mention; Switch delivers each one. The human answers in plain words.
 - **Decisions sit with roles, not one screen.** The incident lead and the duty doctor are roles in `config/humans.yaml`. Solo, one person holds both; with a team, each person gets their own.
 - **Without Switch** this is a pile of separate scripts and a dashboard nobody can act from: no shared picture, no handoffs, no record of who decided.
@@ -51,8 +51,8 @@ AirGrid puts that coordination in one team chat: the agents do the legwork, the 
 
 | Channel | What happens there |
 |---|---|
-| `#ops` | The overview: one line when an incident starts, every decision that needs a person, and the final report. About 3–4 messages per incident |
-| `#incident-1`, `#incident-2` | One incident each: the agents' handoffs and the doctor's call. Two overlapping emergencies stay readable |
+| `#ops` | Information only: one line when an incident starts and the final report. Two messages per incident |
+| `#incident-1`, `#incident-2` | One incident each: the agents' handoffs and every call for a person (the doctor's `transport`, the lead's `leave`). Two overlapping emergencies stay readable |
 
 **People and roles** live in `config/humans.yaml`: the **incident lead** decides `leave` or `stay`, and the **duty doctor** decides `transport` or `treat`. Each person is matched by their Switch sender id, so a display name can't impersonate them. Solo, one person holds both roles; with a team, give each role to a different person.
 

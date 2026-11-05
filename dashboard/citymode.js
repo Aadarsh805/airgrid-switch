@@ -34,13 +34,27 @@ export function startCityMode({ key, S, API, stations }) {
     $("cAvg").textContent = c.avg_response_s != null ? `${c.avg_response_s} s` : "—";
     $("cUp").textContent = c.drones_up;
     const line = plain(v.feed.at(-1)) || "The city is calm.";
-    if ($("cLine").textContent !== line && !U.failed) $("cLine").textContent = line;
+    if ($("cLine").textContent !== line && !U.failed && !(U.saidUntil > Date.now())) $("cLine").textContent = line;
+    const r = $("cRandom"), wait = hold();
+    if (r.classList.contains("searching") !== wait) {
+      r.classList.toggle("searching", wait);
+      r.title = wait ? "Patrols are still looking for the last one" : "";
+    }
   }
 
+  const SAID = {
+    fire: (r) => `🔥 ${plain(r.incident?.name || "fire")} reported. Nearest drone diverting.`,
+    accident: (r) => `💥 ${plain(r.incident?.name || "accident")} reported. Nearest drone diverting.`,
+    random_fire: () => "🔥 A fire started somewhere. Nobody has reported it; patrols are searching.",
+  };
+  const hold = () => (U.view?.unfound || []).length > 0; // one unfound fire at a time
+
   async function trigger(kind, btn) {
+    if (kind === "random_fire" && hold()) return;
     btn.disabled = true;
     const r = await send("city/trigger", { kind });
     if (r.status !== 200) problem(r.body.reason || "That didn't go through.");
+    else { $("cLine").textContent = SAID[kind](r.body); U.saidUntil = Date.now() + 4000; }
     setTimeout(() => { btn.disabled = false; }, 900);
   }
   $("cFire").onclick = (e) => trigger("fire", e.currentTarget);
@@ -49,7 +63,8 @@ export function startCityMode({ key, S, API, stations }) {
 
   async function poll() {
     try {
-      const r = await fetch(`${API}city?since=${U.since}`);
+      // the key shows this screen the fires nobody has found yet; agents never get them
+      const r = await fetch(`${API}city?since=${U.since}`, { headers: { "X-Game-Key": key } });
       if (r.ok) {
         const v = await r.json();
         U.view = v;

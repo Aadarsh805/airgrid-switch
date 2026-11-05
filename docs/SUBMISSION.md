@@ -41,7 +41,7 @@ Pull requests and Wispr card: leave blank. They're for other tracks.
 **How did you use Switch in your project?**
 I connected four Claude Code agents through Switch Console: Drone Ops, Fire Station, Hospital and Police. Each runs in its own folder with only its instructions and a token, and can only read and act through a small CLI. A fifth member, the World Bot, is plain code registered as a custom Switch client. It carries events from the city simulator into the rooms and carries people's decisions back.
 
-It runs on Discord through Switch's Discord bridge, with three channels. `#ops` is the overview: one line when an incident starts, each decision that needs a person, and the final report. `#incident-1` and `#incident-2` hold the work for each incident, so two emergencies at once stay readable.
+It runs on Discord through Switch's Discord bridge, with three channels. `#ops` is information only: one line when an incident starts and the final report. `#incident-1` and `#incident-2` hold the work and the decisions for each incident, so two emergencies at once stay readable.
 
 The real work is running an emergency response. When there's an accident, Drone Ops gets eyes on and tags Police. Police check for injuries and call in the Hospital. Hospital recommends taking the patient in and tags the duty doctor, a person, who types `transport`. Drone Ops then escorts the ambulance, spots a traffic jam on the way and asks Police to clear it. When the scene looks clear, the incident lead types `leave` or `stay`. Teammates work with it by holding these roles: each decision is tied to a role in a config file and matched to the person's Switch identity, so with a team, the doctor and the lead are different people in the same room.
 

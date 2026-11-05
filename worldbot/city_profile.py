@@ -1,6 +1,7 @@
 """`--profile city`: the living city's Discord (docs/city-mode.md, L56, L58, L59).
 
-#ops stays calm: at most three messages an incident, a one-line start, the YOUR CALL, the report.
+#ops is info only: two messages an incident, a one-line start and the report. Every call to a
+person (leave or stay, transport or treat) goes to the incident's own room (L63).
 The work happens in #incident-1, or #incident-2 for an overlapping incident: at most five lines,
 each starting with the place. People never need a drone or incident id: everything is named by
 place, and those ids appear only inside the final report.
@@ -132,6 +133,7 @@ class CityProfile:
             "asking": False,
             "call": None,
             "pinged": set(),
+            "asked_in_room": set(),
             "human_stayed": False,
             "recommend": None,
         }
@@ -204,9 +206,13 @@ class CityProfile:
             s["pinged"].add(call)
             s["human_stayed"] = False
             line = self._call(iid, s, call, p.get("at_risk"))
-            return Moment((kind, iid), OPS, text=line) if ping else None
+            if call == TREAT_TRANSPORT and call in s["asked_in_room"]:
+                return None  # the Hospital's assessment line already asked the doctor (L63)
+            # every call goes to the incident's own room: #ops keeps only info (L63)
+            return Moment((kind, iid), room, text=line) if ping else None
         if kind == "care_assessed":
             s["recommend"] = p.get("recommend")
+            s["asked_in_room"].add(TREAT_TRANSPORT)
             line = f"🚑 {name}: Hospital: {text} {self.doctor} your call: `transport` or `treat`."
             return Moment((kind, iid), room, text=line)
         if kind == "transport_started":
