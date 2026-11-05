@@ -8,15 +8,6 @@ Built for **Flip the Switch** (Nov 4–7, 2026), Best Business Workflow track.
 
 ![AirGrid city mode](docs/city-two-incidents.png)
 
-## What was built when
-I want this to be clear, because the hackathon asks for the Switch workflow to be built during the event (Nov 4–7, 2026).
-
-- **Before the hackathon (Oct 29 – Nov 1), my own tools:** the city simulator, its rules and privacy log, the `airgrid` CLI, the 3D map, and the agent instructions and test harness. These are the existing tools and libraries the rules allow.
-- **Also before the hackathon, while learning Switch:** a first version of the Switch integration (the World Bot as a Switch client, the `#ops` and incident-room workflow, and the ambulance escort). I built it in a private learning repo to understand how Switch works.
-- **During the hackathon (Nov 4–7):** this repo, the random-fire detection flow, the README and demo, the live runs in Discord, and everything committed from Nov 5 onward. The commits show what came in when.
-
-This repo's first commit holds the pre-hackathon tools without the Switch integration. The second brings the integration over from my learning repo, labelled as such. That history is private, but I'm happy to share it with the judges on request.
-
 ## The problem
 Cities already send drones first to emergency calls. Chula Vista's programme has flown more than 25,000 calls, with the drone first on scene in about 97 seconds on average. The hard part isn't flying; it's coordination. Fire, police and medical teams each hold part of the picture, decisions get made by phone, and afterwards nobody can show who decided what.
 
@@ -109,6 +100,16 @@ The original full simulator, a three-hour scripted shift with seven desks and a 
 | `world/`, `scenarios/` | The fictional district and scenarios |
 | `tests/` | Simulator, integration and live agent tests |
 | `docs/` | Specs and decision log (`DECISIONS.md`) |
+
+
+## Build and commits Timeline
+
+- **Before the hackathon (Oct 29 – Nov 1), my own tools:** the city simulator from my existing 3d world repo, its rules, and the agent instructions test harness. These are the existing tools and libraries used.
+- **Also before the hackathon, while learning Switch:** a first version of the Switch integration (the World Bot as a Switch client, the `#dispatch` and ops test workflow). I built it in a private learning repo to understand how Switch works.
+- **During the hackathon (Nov 4–7):** this repo, realtime #fleet (drones) logs on discord and the auto fire detection flow, drone escorting ambulance + police clearing out blocked traffic lanes for ambulance, live drones logging on discord the README and demo, the live runs in Discord, and everything committed from Nov 4 onward. The commits show what came in when.
+
+This repo's first commit holds the pre-hackathon tools without the Switch integration. The second brings the integration over from my learning repo, labelled as such. That history is private, but I'm happy to share it with the judges on request.
+
 
 ## Sources for the context above
 - Chula Vista Police Department, Drone as First Responder programme reporting (calls flown, time to scene).
