@@ -52,6 +52,7 @@ AirGrid puts that coordination in one team chat: the agents do the legwork, the 
 | Channel | What happens there |
 |---|---|
 | `#ops` | Information only: one line when an incident starts and the final report. Two messages per incident |
+| `#fleet` (optional) | The whole fleet, bot only: a live log of every drone change about every 10 seconds, a board every 2 minutes (in the air, charging, ready, what changed) and a ⚠️ line when a patrol drone goes home with no spare to relieve it |
 | `#incident-1`, `#incident-2` | One incident each: the agents' handoffs and every call for a person (the doctor's `transport`, the lead's `leave`). Two overlapping emergencies stay readable |
 
 **People and roles** live in `config/humans.yaml`: the **incident lead** decides `leave` or `stay`, and the **duty doctor** decides `transport` or `treat`. Each person is matched by their Switch sender id, so a display name can't impersonate them. Solo, one person holds both roles; with a team, give each role to a different person.

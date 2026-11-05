@@ -41,6 +41,9 @@ CHOICES = {
 ROLES = {LEAVE_STAY: "incident_lead", TREAT_TRANSPORT: "duty_doctor"}
 
 
+NL = chr(10)  # newline, for the fleet log rows
+
+
 class CityError(Exception):
     def __init__(self, rejection: rules.Rejection):
         self.rejection = rejection
@@ -168,6 +171,16 @@ class City:
         self.hidden: list[dict] = []  # random fires nobody has found yet: never served (rule 8)
         self.feed: list[str] = []
         self.events: list[dict] = []
+        # #fleet (L64): every drone, not only those at incidents. Counts since the last board.
+        self.fleet = {
+            "at": eng.now,
+            "home": 0,
+            "out": 0,
+            "phase": {},
+            "log": [],
+            "log_at": eng.now,
+            "first": True,
+        }
         self._check_world()
         eng.city = self
 
@@ -190,13 +203,16 @@ class City:
         self._say("city_start", "The city is calm. Drones are out on patrol.")
 
     # ------------------------------------------------------------------ talk
-    def _say(self, type_: str, text: str, inc: dict | None = None, **payload) -> None:
+    def _say(
+        self, type_: str, text: str, inc: dict | None = None, feed: bool = True, **payload
+    ) -> None:
         eng = self.eng
         if inc is not None:
             payload["incident"] = inc["id"]
             inc["timeline"].append({"clock": fmt(eng.now), "text": text})
         e = eng.emit(eng.now, type_, text, payload, timeline=False)
-        self.feed = [*self.feed, text][-self.cfg["feed_lines"] :]
+        if feed:  # fleet lines stay off the dashboard's one line
+            self.feed = [*self.feed, text][-self.cfg["feed_lines"] :]
         self.events.append(
             {"seq": e.seq, "type": type_, "clock": fmt(eng.now), "text": text, "payload": payload}
         )
@@ -257,6 +273,7 @@ class City:
                 for d in low:
                     if d.bat <= self.cfg["home_pct"]:
                         eng.rtb(d, t, "low battery, no relief ready")
+                        self._fleet_alert(d, f"patrol route {k + 1}")
 
     # ------------------------------------------------------------------ triggers
     def trigger(
@@ -476,6 +493,119 @@ class City:
             self._cover(inc)
             self._advance(inc, t)
         self._drive(t)
+        self._fleet_tick(t)
+
+    # ------------------------------------------------------------------ #fleet (L64)
+    PHASE = {"On patrol": "patrol", "Checking a heat reading": "patrol", "Heading to dock": "home"}
+
+    def _phase(self, d) -> str:
+        label = self._label(d)
+        return {"Charging": "charging", "Ready": "ready"}.get(label) or self.PHASE.get(
+            label, "incident"
+        )
+
+    def _change(self, d, was: str, now: str) -> str:
+        """One fleet log row in words, e.g. `D-04 lands at P3 and charges (38%)`."""
+        b = f"{d.bat:.0f}%"
+        if now == "home":
+            return f"{d.id} heads to dock {d.target} ({b})"
+        if now == "charging":
+            return f"{d.id} lands at {d.slot} and charges ({b})"
+        if now == "ready":
+            return f"{d.id} charged at {d.slot}, ready ({b})"
+        label = self._label(d)
+        what = label[0].lower() + label[1:]  # "Heading to East Avenue" -> "heading to East Avenue"
+        if was in ("charging", "ready"):
+            goal = (
+                "for patrol"
+                if now == "patrol"
+                else f"for {self.active[d.incident]['scene']}"
+                if d.incident in self.active
+                else "on a job"
+            )
+            return f"{d.id} takes off {goal} ({b})"
+        if now == "patrol" and was == "incident":
+            return f"{d.id} back on patrol ({b})"
+        return f"{d.id} {what} ({b})"
+
+    def _fleet_alert(self, d, where: str) -> None:
+        keep = self.eng.world.policies["ready_floor"]
+        text = (
+            f"{d.id} heads to a dock at {d.bat:.0f}% from {where}. No spare drone to relieve it: "
+            f"{keep} stay ready for emergencies."
+        )
+        self._say("fleet_alert", text, None, feed=False, drone=d.id, battery=round(d.bat, 1))
+
+    def _fleet_tick(self, t: float) -> None:
+        f = self.fleet
+        for d in self.eng.drones.values():
+            now, was = self._phase(d), f["phase"].get(d.id)
+            if was in ("charging", "ready") and now not in ("charging", "ready"):
+                f["out"] += 1
+            if was not in (None, "home", "charging", "ready") and now in ("home", "charging"):
+                f["home"] += 1
+            if was is not None and now != was:
+                f["log"].append(f"{fmt(t % 1440)[:5]} {self._change(d, was, now)}")
+            f["phase"][d.id] = now
+        # the live log (L66): every change, gathered into one post every fleet_log_min
+        if f["log"] and t - f["log_at"] >= self.cfg["fleet_log_min"] - 1e-9:
+            rows, f["log"], f["log_at"] = f["log"], [], t
+            self._say("fleet_log", NL.join(rows), None, feed=False, changes=len(rows))
+        elif not f["log"]:
+            f["log_at"] = t
+        if t - f["at"] < self.cfg["fleet_board_min"] - 1e-9 and not f["first"]:
+            return
+        f["first"] = False
+        n = {k: 0 for k in ("patrol", "incident", "home", "charging", "ready")}
+        for p in f["phase"].values():
+            n[p] += 1
+        air = n["patrol"] + n["incident"] + n["home"]
+        low = min(
+            (d for d in self.eng.drones.values() if d.state == "airborne"),
+            key=lambda d: (d.bat, d.id),
+            default=None,
+        )
+        bare = [
+            k + 1
+            for k in range(len(self.routes))
+            if not any(
+                self.eng.drones[i].mission == "roam"
+                for i, r in self.roam.items()
+                if r["route"] == k
+            )
+        ]
+        doing = [f"{n['patrol']} on patrol"]
+        if n["incident"]:
+            doing.append(f"{n['incident']} at incidents")
+        if n["home"]:
+            doing.append(f"{n['home']} heading to a dock")
+        held = (
+            " (kept for emergencies)"
+            if n["ready"] <= self.eng.world.policies["ready_floor"]
+            else ""
+        )
+        text = (
+            f"{air} in the air ({', '.join(doing)}) · {n['charging']} charging · "
+            f"{n['ready']} ready{held}."
+        )
+        if t > f["at"] + 1e-9:  # the very first board has nothing to compare with
+            since = fmt(f["at"] % 1440)[:5]
+            text += f" Since {since}: {f['home']} went to charge, {f['out']} took off."
+        if low is not None:
+            text += f" Lowest in the air: {low.id} {low.bat:.0f}%."
+        if bare:
+            text += f" Patrol routes without a drone: {', '.join(map(str, bare))}."
+        self._say(
+            "fleet_board",
+            text,
+            None,
+            feed=False,
+            **n,
+            went_home=f["home"],
+            took_off=f["out"],
+            uncovered=bare,
+        )
+        f["at"], f["home"], f["out"] = t, 0, 0
 
     def _cover(self, inc: dict) -> None:
         """Keep one drone on the scene: relief is on station before the old drone leaves."""
@@ -670,7 +800,13 @@ class City:
                 "requested": False,
             }
             self.traffic.append(e["block"])
-        self._say("transport_started", f"Ambulance leaves {inc['scene']} for the Hospital.", inc)
+        self._escort_cover(inc, e)  # the escort drone is named on the first line (L65)
+        self._say(
+            "transport_started",
+            f"Ambulance leaves {inc['scene']} for the Hospital.",
+            inc,
+            drone=e["drone"],
+        )
 
     def _ahead(self, v: Vehicle) -> list[float]:
         """The point escort_lead_km ahead of the vehicle along its road route."""
@@ -752,7 +888,13 @@ class City:
     def _send_police(self, inc: dict, b: dict) -> None:
         if not b["requested"]:
             b["requested"] = True
-            self._say("police_requested", "Police asked to clear the junction.", inc, at=b["at"])
+            self._say(
+                "police_requested",
+                "Police asked to clear the junction.",
+                inc,
+                at=b["at"],
+                drone=inc["escort"]["drone"],
+            )
         free = [v for v in self.vehicles.values() if v.kind == "police_car" and v.state == "parked"]
         if not free:
             return  # waits for a car to come home

@@ -30,7 +30,7 @@ OTHER = "@switch-user-other99:airgrid.local"
 ROLES = ("watch_commander", "remote_pilot", "field_officer", "incident_lead", "duty_doctor")
 OPS = "AirGrid: ops"
 INC1, INC2 = "AirGrid: incident-1", "AirGrid: incident-2"
-HUMAN_ID = re.compile(r"\bD-\d+|INC-|\(\d")
+HUMAN_ID = re.compile(r"INC-|\(\d")  # drone ids are fine since L65; incident ids not
 RUN_GAME = ROOT / "scripts" / "run_game.sh"
 
 
@@ -664,6 +664,7 @@ def test_real_escort_counts_and_report(switch, city_sim, tmp_path):
     report = next(t for t in reversed(in_room(switch, OPS)) if ": closed." in t)
     assert "Care: transport" in report and re.search(r"Transport: [\d.]+ min, delay", report)
     assert not [t for t in mine if HUMAN_ID.search(t)], mine
+    assert any(re.search(r"Drone Ops \(D-\d+\) escorting the ambulance", t) for t in mine), mine
 
 
 def test_random_fire_posts_nothing_until_detected_then_one_heat_line(switch, city_sim, tmp_path):
@@ -870,3 +871,60 @@ def _bot(room, tmp_path, humans=None, key="k", calls=None, profile="city"):
         profile=CityProfile("@k") if profile else None,
         operator_key=key or " ".strip(),
     )
+
+
+def test_fleet_lines_go_to_fleet_without_mentions(tmp_path):
+    """L64: the whole fleet in #fleet, plain lines, no @mention, so no agent wakes."""
+    room = _Rooms()
+    events = [
+        {
+            "seq": 1,
+            "type": "fleet_board",
+            "text": "9 in the air (9 on patrol) · 3 charging · 2 ready.",
+            "payload": {},
+        },
+        {
+            "seq": 2,
+            "type": "fleet_alert",
+            "text": "D-04 heads to a dock at 35% from patrol route 2.",
+            "payload": {"drone": "D-04"},
+        },
+    ]
+
+    async def go():
+        bot = _bot(room, tmp_path)
+        for e in events:
+            await bot.handle_event(e)
+        await bot.aclose()
+
+    asyncio.run(go())
+    assert [r for r, _t in room.out] == ["#fleet", "#fleet"]
+    assert room.out[0][1].startswith("🛰 Fleet: 9 in the air")
+    assert room.out[1][1].startswith("⚠️ Fleet: D-04")
+    assert not [t for _r, t in room.out if "@" in t]
+
+
+def test_no_fleet_room_skips_fleet_lines_quietly(tmp_path):
+    room = _Rooms()
+    room.rooms = {"#ops": "1", "#incident-1": "2", "#incident-2": "3"}  # a server without #fleet
+
+    async def go():
+        bot = _bot(room, tmp_path)
+        await bot.handle_event({"seq": 1, "type": "fleet_board", "text": "x", "payload": {}})
+        await bot.aclose()
+
+    asyncio.run(go())
+    assert room.out == []
+
+
+def test_fleet_log_posts_rows_to_fleet(tmp_path):
+    room = _Rooms()
+    rows = "09:17 D-13 takes off for patrol (100%)\n09:19 D-07 heads to dock P7 (44%)"
+
+    async def go():
+        bot = _bot(room, tmp_path)
+        await bot.handle_event({"seq": 1, "type": "fleet_log", "text": rows, "payload": {}})
+        await bot.aclose()
+
+    asyncio.run(go())
+    assert room.out == [("#fleet", rows)]

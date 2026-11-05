@@ -20,6 +20,8 @@ from worldbot.game_profile import OPS, Moment
 AGENTS = ("dispatch", "fire-station", "hospital", "police")
 INCIDENT_ROOMS = ("#incident-1", "#incident-2")
 ROOMS = (OPS, *INCIDENT_ROOMS)
+FLEET = "#fleet"  # optional (L64): the whole fleet, bot only, no mentions. Skipped if absent.
+FLEET_EVENTS = {"fleet_board": "🛰", "fleet_alert": "⚠️", "fleet_log": "📋"}
 SERVICES = {"fire": "fire-station", "accident": "police"}
 ICONS = {"fire": "🔥", "accident": "💥"}
 LEAD = "incident_lead"  # the human role that decides leave or stay
@@ -47,6 +49,7 @@ EVENTS = (
     "traffic_cleared",
     "patient_delivered",
     "city_report",
+    *FLEET_EVENTS,
 )
 
 
@@ -100,6 +103,7 @@ def report_text(r: dict) -> str:
 
 class CityProfile:
     rooms = ROOMS
+    optional_rooms = (FLEET,)
     home_room = OPS
     decides = True  # typed leave/stay reach /city/decide
     over = False
@@ -172,6 +176,11 @@ class CityProfile:
             return None
         iid = p.get("incident")
         text = str(event.get("text", ""))
+        if kind in FLEET_EVENTS:  # plain lines, no @mention, so no agent wakes (L64)
+            line = f"{FLEET_EVENTS[kind]} Fleet: {text}"
+            if kind == "fleet_log":  # the live log (L66): one row a change
+                line = text  # rows already start with the time
+            return Moment((kind, event.get("seq")), FLEET, text=line)
         if kind == "heat_possible":  # before any incident: one line, in the room it will use
             drone = p.get("drone")
             if drone in self.heat:
@@ -216,12 +225,15 @@ class CityProfile:
             line = f"🚑 {name}: Hospital: {text} {self.doctor} your call: `transport` or `treat`."
             return Moment((kind, iid), room, text=line)
         if kind == "transport_started":
-            line = f"🛰 {name}: Drone Ops escorting the ambulance, route clear."
+            who = f" ({p['drone']})" if p.get("drone") else ""  # drone ids are fine (L65)
+            line = f"🛰 {name}: Drone Ops{who} escorting the ambulance, route clear."
             return Moment((kind, iid), room, text=line)
         if kind == "police_requested":
             s["junction"] = self.near(p.get("at"))
+            who = f" ({p['drone']})" if p.get("drone") else ""
             line = (
-                f"🛰 {name}: Drone Ops → @police ambulance stuck {s['junction']}, please clear it."
+                f"🛰 {name}: Drone Ops{who} → @police ambulance stuck {s['junction']}, "
+                "please clear it."
             )
             return Moment((kind, iid), room, text=line)
         if kind == "traffic_cleared":

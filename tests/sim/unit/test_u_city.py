@@ -1024,3 +1024,49 @@ def test_unfound_fire_only_on_the_operator_screen(api):
     assert "unfound" not in api.get("/city", headers={"X-Game-Key": "wrong"}).json()
     S.city._confirm(h, next(iter(S.engine.drones.values())))
     assert api.get("/city", headers=H).json()["unfound"] == []
+
+
+def test_fleet_board_counts_every_drone_and_stays_off_the_dashboard_line():
+    """L64: a fleet board every fleet_board_min, covering all drones, never in the feed."""
+    c = new_city()
+    every = W.raw["city"]["fleet_board_min"]
+    run(c, every * 2 + 1)
+    boards = [e for e in c.events if e["type"] == "fleet_board"]
+    assert len(boards) == 3  # one at the start, then every fleet_board_min
+    for b in boards:
+        p = b["payload"]
+        total = sum(p[k] for k in ("patrol", "incident", "home", "charging", "ready"))
+        assert total == len(c.eng.drones)
+        assert "in the air" in b["text"] and "charging" in b["text"]
+        assert p["went_home"] >= 0 and p["took_off"] >= 0
+    fleet_texts = {e["text"] for e in c.events if e["type"].startswith("fleet")}
+    assert not fleet_texts & set(c.feed)
+
+
+def test_fleet_alert_when_a_patrol_drone_goes_home_unrelieved():
+    c = new_city()
+    for d in c.eng.drones.values():  # nothing on the ground can launch
+        if d.state == "docked":
+            d.bat = 10.0
+    run(c, 60)
+    alerts = [e for e in c.events if e["type"] == "fleet_alert"]
+    assert alerts and all("No spare drone to relieve it" in e["text"] for e in alerts)
+    assert all(e["payload"]["drone"] in c.eng.drones for e in alerts)
+
+
+def test_fleet_log_lists_every_change_every_ten_seconds():
+    """L66: every drone change goes in the live log, gathered every fleet_log_min."""
+    c = new_city()
+    every = W.raw["city"]["fleet_log_min"]
+    run(c, 60)
+    logs = [e for e in c.events if e["type"] == "fleet_log"]
+    assert logs and all(e["payload"]["changes"] == len(e["text"].split("\n")) for e in logs)
+    rows = [r for e in logs for r in e["text"].split("\n")]
+    assert any("takes off for patrol" in r for r in rows)
+    assert any("heads to dock" in r for r in rows)
+    assert any("lands at" in r and "charges" in r for r in rows)
+    assert all(r[:2].isdigit() and r[2] == ":" for r in rows)
+    assert len(logs) <= 60 / every + 1  # at most one post a period
+    assert not {e["text"] for e in logs} & set(c.feed)
+    first = next(e for e in c.events if e["type"] == "fleet_board")
+    assert "Since" not in first["text"]  # the first board, at once, compares with nothing

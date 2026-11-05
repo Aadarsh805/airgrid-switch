@@ -17,7 +17,7 @@ city:
   fire-station: ["#incident-1", "#incident-2"]
   hospital: ["#incident-1", "#incident-2"]
   police: ["#incident-1", "#incident-2"]
-  worldbot: ["#ops", "#incident-1", "#incident-2"]
+  worldbot: ["#ops", "#incident-1", "#incident-2", "#fleet"]  # #fleet optional, bot only (L64)
 # Game mode (docs/game-mode.md): two rooms, four agents.
 game:
   dispatch: ["#ops"]

@@ -125,6 +125,10 @@ class WorldBot:
         moment = self.profile.moment(event)
         if moment is None:
             return
+        known = getattr(self.transport, "rooms", None)
+        if moment.room in getattr(self.profile, "optional_rooms", ()) and isinstance(known, dict):
+            if moment.room not in known:  # e.g. no #fleet in this server: skip, don't fail
+                return
         if moment.beat:
             await self.report_activity(moment.agent, "busy")
         await self.transport.post(moment.room, self.profile.line(event, moment))
