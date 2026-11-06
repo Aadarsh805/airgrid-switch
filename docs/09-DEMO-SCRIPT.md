@@ -16,7 +16,7 @@ The vibe: a casual walkthrough, like showing a friend what you built. Not an ad.
 |---|---|---|
 | 0:00–0:19 | Reel pieces 1 and 2, centred on a blurred copy of itself, credit bottom-left | Reel audio |
 | 0:19–0:36 | Title card **AirGrid**, then the calm 3D city | Voice-over 1 |
-| 0:36–0:46 | Discord: channel list and member list (4 agents, World Bot, you) | Voice-over 2 |
+| 0:36–0:46 | Discord: the member list, your teammates Drone Ops, Fire Station, Hospital and Police (AI agents), plus you | Voice-over 2 |
 | 0:46–1:46 | Flow A: the accident, end to end | Voice-over 3, sped-up gaps |
 | 1:46–2:10 | Flow B: random fire found on patrol | Voice-over 4 |
 | 2:10–2:30 | Flow C: `#fleet`, `watch market`, `dock D-4` | Voice-over 5 |
@@ -29,21 +29,21 @@ The vibe: a casual walkthrough, like showing a friend what you built. Not an ad.
 > "So I came across this reel a while back. In Shenzhen the drones just sit on poles above the street, fly out, come back and charge on their own. And I was like, okay, what would it take to have that here? Honestly the drones aren't the hard part. It's getting fire, police, the hospital and whoever's watching the drones to actually work together. So that's what I tried to build. It's called AirGrid."
 
 **VO 2 (0:36–0:46), over the Discord channels**
-> "Everything runs in Discord through Switch. These four are AI agents: drone ops, fire, hospital, police. And this is me. I'm the one who makes the actual calls."
+> "Everything runs in Discord through Switch. This is the team: drone ops, fire, hospital and police. They're AI agents, but they work like teammates. Each one has its own job, they tag each other when they need help, and they check with us before anything big happens."
 
 **VO 3 (0:46–1:46), over the accident**
-> "Let me trigger an accident. Okay, a drone's already on it, and it's pinging police in the incident channel. Police say three people are hurt, so they pull in the hospital. Hospital thinks they should go in, but it asks the doctor first. That's me, so... *transport*."
-> (⏩) "Now a drone flies ahead of the ambulance. And there's a jam up ahead. It sees it first and asks police to clear it. You can see the cars moving out of the way."
-> (⏩) "Patient's at the hospital. It's asking if the drone can leave. Yeah, *leave*. And the report shows up in ops with everything that happened."
+> "Let me trigger an accident. Okay, drone ops is already on it, and it tags police in the incident channel. Police check it out, three people are hurt, so they call in the hospital. Hospital thinks they should go in, but that's the duty doctor's call, and that's my role on the team today. So... *transport*."
+> (⏩) "Now drone ops sends a drone ahead of the ambulance. There's a jam up ahead. The drone spots it first, so drone ops asks police to clear it, and police are on it. You can see the cars moving out of the way."
+> (⏩) "Patient's at the hospital. Drone ops asks if the drone can leave the scene. Yeah, *leave*. And the report shows up in ops with everything the team did."
 
 **VO 4 (1:46–2:10), over the random fire**
-> "This one's a fire nobody called in. It's just burning there. A drone on patrol picks up the heat, the sensor's simulated obviously, goes over to check, and yep, it's a fire. And the fire truck's already heading out."
+> "This one's a fire nobody called in. It's just burning there. A drone on patrol picks up the heat, the sensor's simulated obviously, goes over to check, and yep, it's a fire. Drone ops tells the fire station, and the fire truck's already heading out."
 
 **VO 5 (2:10–2:30), over #fleet and the orders**
 > "This channel is just the drones. Who's flying, who's charging, who's coming back. And I can tell them stuff. *Watch market*, and one drone goes and circles Market Street. *Dock D-4*, and it goes home and stays there. It always keeps three drones back for emergencies, so it won't let me use those."
 
 **VO 6 (2:38–2:52), over the privacy card and the city**
-> "That question at the end of the reel is a fair one. So here, drones only record when there's an actual incident, and it's logged. The watch thing doesn't record at all. There's no face recognition. And the AI never decides anything on its own, people do. That's AirGrid. Thanks for watching."
+> "That question at the end of the reel is a fair one. So here, drones only record when there's an actual incident, and it's logged. The watch thing doesn't record at all. There's no face recognition. And the AI teammates never make the big calls on their own, a person does. That's AirGrid. Thanks for watching."
 
 ## Shots to record (OBS, 1920×1080, 30 fps)
 Record each flow as its own take; the editor cuts the waiting. Dashboard on the left (about 60%), Discord on the right.
