@@ -5,7 +5,7 @@ Copy each answer into the form. Edit the wording to sound like you. Fields marke
 ## Part 1 · Project details
 
 **Project title**
-AirGrid: a city's drone response team in one chat
+AirGrid: a city drone monitoring system with AI agents, run from one team chat
 
 **Tracks**
 Best Business Workflow. Optionally also Best Blog, if you publish the post.

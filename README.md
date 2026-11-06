@@ -1,6 +1,6 @@
 # AirGrid
 
-**A city's drone response team, run from team chat.** Drones patrol a fictional city. Drone Ops, Fire, Hospital and Police are your teammates in Discord: AI agents in Switch rooms who each own a job, tag each other for help, and check with a person before any big call.
+**A city drone monitoring system with AI agents, run from one team chat on Switch.** Drones patrol a fictional city. Drone Ops, Fire, Hospital and Police are your teammates in Discord: AI agents in Switch rooms who each own a job, tag each other for help, and check with a person before any big call.
 
 Built for **Flip the Switch** (Nov 4–7, 2026), Best Business Workflow track. 📄 **[Demo guide (PDF)](docs/AirGrid-Demo-Guide.pdf)**: everything below, with more screenshots.
 
