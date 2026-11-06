@@ -20,11 +20,37 @@ AirGrid puts that coordination in one team chat: the agents do the legwork, the 
 4. The agents hand off to each other in the open: Police check for injuries, Hospital recommends treating on scene or taking the patient in, Drone Ops escorts the ambulance and asks Police to clear a traffic jam.
 5. **People decide in chat.** The duty doctor replies `transport` or `treat`. The incident lead replies `leave` or `stay` when the scene looks clear. Nothing waits on the dashboard.
 6. A report lands in `#ops`: timeline, who went, response time, recording window, minutes saved.
+7. **The whole fleet is visible in `#fleet`**, live: every drone taking off, heading to a dock, charging and coming back, plus a fleet board every 2 minutes.
+8. **People can steer the fleet from chat.** The Watch Commander types `watch market` to put a drone over an area, or `dock D-4` to ground one. The simulator checks every order before it happens.
+
+## What you can do
+**On the dashboard** (the ops wall, watch-only for the drone monitor team):
+- **🔥 Simulate fire** and **💥 Simulate accident**: a reported incident at a city scene. The nearest drone diverts, and you watch the crews drive there.
+- **🎲 Random fire**: a fire nobody reported. It burns on the map, and a patrol drone has to find it with its simulated thermal sensor.
+- Watch progress rings at scenes, the escort drone flying ahead of the ambulance, traffic jams being cleared, watch rings over areas, and grounded drones.
+
+**In Discord** (type the whole message, no @mention needed):
+
+| Where | Type | Who can |
+|---|---|---|
+| Incident room | `transport` · `treat` | Duty doctor |
+| Incident room | `leave` · `stay` · `stay 2 more minutes` · `leave market` (two calls open) | Incident lead |
+| `#ops` | `watch market` · `watch ring road 30 min` · `increase surveillance on north road for 45 minutes` · `stop watching market` | Watch commander |
+| `#ops` | `dock D-4` · `release D-4` | Watch commander |
+| Any room | `@dispatch what's happening?` · `@dispatch ask police to stay until the tow arrives` | Anyone |
+| `#ops` | `!list-documents` (Switch's own command): shows the **Flight authorisation log** the World Bot writes, one entry per incident | Anyone |
+
+Places: Central Crossing, East Avenue, Market Street, Mill Lane shops, North Road, Northgate Flats, Ring Road, South Depot; any unique part of the name works. Drones: D-01 to D-14.
+
+Try a refusal too: it shows the rules live in the simulator, not in an agent. `dock D-3` while D-3 escorts an ambulance, `leave` from someone who isn't the incident lead, or `watch market` when every patrol drone is low all get a plain `❌ REJECTED` with the reason.
+
+**The full walkthrough, with screenshots, example messages and demo flows:** [docs/AirGrid-Demo-Guide.pdf](docs/AirGrid-Demo-Guide.pdf).
 
 ## Why Switch
 - **Rooms are the operation.** `#ops` shows the headlines and the reports. `#incident-1` and `#incident-2` hold each incident's work, so two emergencies stay readable.
 - **Agents and people work the same task together.** Agents report, recommend and hand off by @mention; Switch delivers each one. The human answers in plain words.
-- **Decisions sit with roles, not one screen.** The incident lead and the duty doctor are roles in `config/humans.yaml`. Solo, one person holds both; with a team, each person gets their own.
+- **Decisions sit with roles, not one screen.** The incident lead, the duty doctor and the watch commander are roles in `config/humans.yaml`. Solo, one person holds them all; with a team, each person gets their own.
+- **The fleet has its own room.** `#fleet` shows every drone, not only the ones at incidents, without pinging anyone.
 - **Without Switch** this is a pile of separate scripts and a dashboard nobody can act from: no shared picture, no handoffs, no record of who decided.
 
 ## How Switch is set up
@@ -32,19 +58,20 @@ AirGrid puts that coordination in one team chat: the agents do the legwork, the 
 
 | Agent | Job in the room |
 |---|---|
-| `dispatch` (Drone Ops) | Reports what the drones see, tags the right service, escorts the ambulance, asks the people for decisions |
+| `dispatch` (Drone Ops) | Reports what the drones see, tags the right service, escorts the ambulance, answers "what's happening?" and relays requests between people and services |
 | `fire-station` | Acknowledges fires, sends engines, reports progress |
 | `hospital` | Sends ambulances, recommends treating on scene or taking the patient in |
 | `police` | Checks scenes for injuries, clears roads and traffic jams |
-| `airgrid-worldbot` | Plain code, no AI. A registered Switch client that carries simulator events into the rooms and human decisions back |
+| `airgrid-worldbot` | Plain code, no AI. A registered Switch client that carries simulator events into the rooms and people's decisions and orders back. The only member that can change the simulation, and only for a mapped person |
 
 **Channels** (Discord, through Switch's Discord bridge):
 
 | Channel | What happens there |
 |---|---|
-| `#ops` | Information only: one line when an incident starts and the final report. Two messages per incident |
-| `#fleet` (optional) | The whole fleet, bot only: a live log of every drone change about every 10 seconds, a board every 2 minutes (in the air, charging, ready, what changed) and a ⚠️ line when a patrol drone goes home with no spare to relieve it |
+| `#ops` | Information only for incidents: one line when one starts and the final report, two messages each. Also where the Watch Commander types fleet orders |
+| `#fleet` (optional) | The whole fleet, World Bot only, no pings: a live log of every drone change about every 10 seconds, a board every 2 minutes (in the air, charging, ready, what changed), a ⚠️ line when a patrol drone goes home with no spare to relieve it, and every order a person gave |
 | `#incident-1`, `#incident-2` | One incident each: the agents' handoffs and every call for a person (the doctor's `transport`, the lead's `leave`). Two overlapping emergencies stay readable |
+| `#test-room` | A quick check before a demo: `@dispatch reply with one word: ready` |
 
 **Orders from the room** (the Watch Commander, typed in `#ops` with no @mention). The sim checks each one and says what happened; `#fleet` and the map show it:
 
@@ -57,16 +84,25 @@ AirGrid puts that coordination in one team chat: the agents do the legwork, the 
 
 The 3 drones kept ready for emergencies are never used for a watch, so a watch can be refused when the fleet is stretched.
 
-**People and roles** live in `config/humans.yaml`: the **incident lead** decides `leave` or `stay`, and the **duty doctor** decides `transport` or `treat`. Each person is matched by their Switch sender id, so a display name can't impersonate them. Solo, one person holds both roles; with a team, give each role to a different person.
+**People and roles** live in `config/humans.yaml`:
 
-**Setting it up yourself:** `HUMAN_TODO.md` has the exact steps. Register the World Bot (`scripts/bootstrap_worldbot.py` on a local Switch server), create the four agents in Switch Console pointing at `~/airgrid-agents/<name>` (from `scripts/install_agents.sh`), invite them to the three channels, paste the room instructions from `agents/switch/rooms/`, then run `scripts/run_game.sh --discord`.
+| Role | Decides |
+|---|---|
+| Incident lead | `leave` or `stay` when a scene looks clear |
+| Duty doctor | `transport` or `treat` for the injured |
+| Watch commander | Fleet orders: `watch`, `dock`, `release` |
+
+Each person is matched by their Switch sender id, so a display name can't impersonate them. Solo, one person holds every role; with a team, give each role to a different person.
+
+**Setting it up yourself:** `HUMAN_TODO.md` has the exact steps. Register the World Bot (`scripts/bootstrap_worldbot.py` on a local Switch server), create the four agents in Switch Console pointing at `~/airgrid-agents/<name>` (from `scripts/install_agents.sh`), invite them to `#ops`, `#incident-1` and `#incident-2`, invite only the World Bot to `#fleet`, paste the room instructions from `agents/switch/rooms/`, then run `scripts/run_game.sh --discord`.
 
 ## Rules the code enforces
 - The simulator alone owns the truth. Agents read and propose through the `airgrid` CLI; they never change state on their own.
 - Only mapped humans decide, and only in the room, via the World Bot.
 - Timing, battery, landing slots, relief drones and no-fly zones are simulator code. An AI model never sits in the critical path, and the city keeps running if every agent goes offline.
 - A 25% battery reserve, a red no-fly zone with no override, and a no-record zone are hard rules.
-- Recording happens only at an active scene and is logged. Face identification does not exist in the system.
+- Recording happens only at an active scene and is logged; a watch never records. Face identification does not exist in the system.
+- Three charged drones always stay ready for emergencies: no patrol, watch or order can take them.
 - No AI model inside the simulator. The "thermal sensor" is simulated and labelled as such.
 
 ## Architecture
@@ -75,14 +111,14 @@ flowchart LR
   SIM["Simulator (Python, FastAPI, SQLite)<br/>source of truth"]
   DASH["3D dashboard<br/>three.js, watch-only"]
   BOT["World Bot (plain code)"]
-  ROOMS["Switch rooms in Discord<br/>#ops · #incident-1 · #incident-2"]
+  ROOMS["Switch rooms in Discord<br/>#ops · #incident-1 · #incident-2 · #fleet"]
   AG["Agents (Claude Code)<br/>Drone Ops · Fire · Hospital · Police"]
-  P["People<br/>incident lead · duty doctor"]
+  P["People<br/>incident lead · duty doctor · watch commander"]
   SIM -->|state| DASH
   SIM -->|events| BOT --> ROOMS
   ROOMS <--> AG
   AG -->|airgrid CLI, read| SIM
-  P -->|leave / stay / transport| ROOMS --> BOT -->|decision| SIM
+  P -->|leave / transport / watch / dock| ROOMS --> BOT -->|decision or order| SIM
 ```
 
 ## Run it
@@ -113,11 +149,16 @@ The original full simulator, a three-hour scripted shift with seven desks and a 
 | `docs/` | Specs and decision log (`DECISIONS.md`) |
 
 
-## Build and commits Timeline
+## Build and commit timeline
 
-- **Before the hackathon (Oct 29 – Nov 1), my own tools:** the city simulator from my existing 3d world repo, its rules, and the agent instructions test harness. These are the existing tools and libraries used.
-- **Also before the hackathon, while learning Switch:** a first version of the Switch integration (the World Bot as a Switch client, the `#dispatch` and ops test workflow). I built it in a private learning repo to understand how Switch works.
-- **During the hackathon (Nov 4–7):** this repo, realtime #fleet (drones) logs on discord and the auto fire detection flow, drone escorting ambulance + police clearing out blocked traffic lanes for ambulance, live drones logging on discord the README and demo, the live runs in Discord, and everything committed from Nov 4 onward. The commits show what came in when.
+- **Before the hackathon (Oct 29 – Nov 1), my own tools:** the city simulator from my existing 3d world repo and its rules, the `airgrid` CLI, the 3D map, and the agent instructions and test harness. These are the existing tools and libraries used.
+- **Also before the hackathon, while learning Switch:** a first version of the Switch integration, built in a private learning repo to understand how Switch works: the World Bot as a Switch client, the `#ops` and incident-room workflow, and the ambulance escort with the doctor's call and Police clearing traffic (Nov 1).
+- **During the hackathon (Nov 4–7):** this repo, and everything committed from Nov 5 onward. The commits show what came in when:
+  - **Random fire found on patrol:** a hidden fire that a roaming drone detects with its simulated thermal sensor, drawn burning on the map before it's found.
+  - **Realtime `#fleet` on Discord:** every drone taking off, docking, charging and coming back, a fleet board every 2 minutes, and alerts when a route has no spare drone.
+  - **Orders from Discord:** `watch <place>` to put a drone over an area, and `dock` / `release` to ground a drone, all checked by the simulator.
+  - **Cleaner rooms:** every decision asked only in the incident's own room, `#ops` kept to headlines and reports, and the escort drone named in its lines.
+  - The README, the [demo guide](docs/AirGrid-Demo-Guide.pdf), the demo video, and the live runs in Discord.
 
 This repo's first commit holds the pre-hackathon tools without the Switch integration. The second brings the integration over from my learning repo, labelled as such. That history is private, but I'm happy to share it with the judges on request.
 
