@@ -169,6 +169,7 @@ export class CityFx {
     v.vehicles.forEach((x, i) => this.syncVehicle(x, i, now));
     this.syncRooms(v);
     this.syncJams(v, now);
+    this.syncWatches(v, now);
     // fires burning that no drone has found yet (operator view only, L63): flames, no beacon
     const unfound = (v.unfound || []).map((u) => ({ id: u.id, kind: "fire", at: u.at, stage: "unfound", name: "Not reported yet", since_s: u.since_s }));
     const all = [...v.incidents, ...unfound];
@@ -229,6 +230,34 @@ export class CityFx {
       const used = [...this.rooms.values()];
       const count = (r) => used.filter((x) => x === r).length;
       this.rooms.set(i.id, count("#incident-1") <= count("#incident-2") ? "#incident-1" : "#incident-2");
+    }
+  }
+
+  // --- watch orders (L67): a slow ring over the watched place, gone when the sim ends it
+  syncWatches(v, now) {
+    this.watches ??= new Map();
+    const live = new Set((v.watches || []).map((w) => w.place));
+    for (const [place, r] of this.watches) {
+      if (live.has(place)) continue;
+      this.city.scene.remove(r);
+      this.city.unlabel(`w:${place}`);
+      this.watches.delete(place);
+    }
+    for (const w of v.watches || []) {
+      let r = this.watches.get(w.place);
+      if (!r) {
+        r = new THREE.Mesh(new THREE.RingGeometry(0.95, 1, 64), new THREE.MeshBasicMaterial({ color: C.sky, transparent: true, opacity: 0.55, depthWrite: false, side: THREE.DoubleSide }));
+        r.rotation.x = -Math.PI / 2;
+        r.position.set(this.px(w.at[0]), 0.03, this.pz(w.at[1]));
+        const k = this.px(w.at[0] + 0.3) - this.px(w.at[0]);
+        r.scale.setScalar(Math.abs(k));
+        this.city.scene.add(r);
+        this.watches.set(w.place, r);
+        this.focus = w.at;
+        this.focusUntil = now + FOCUS_MS;
+      }
+      r.material.opacity = 0.35 + 0.2 * Math.sin(now / 400);
+      this.city.label(`w:${w.place}`, "note ok", `👁 Watch · ${w.place} · ${w.drone} · until ${w.until}`, r.position.x, 0.6, r.position.z);
     }
   }
 

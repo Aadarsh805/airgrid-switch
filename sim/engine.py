@@ -517,6 +517,9 @@ class Engine:
             elif d.mission == "escort":
                 drain(d, rates["cruise"])
                 self.city.escort_move(d)
+            elif d.mission == "watch":  # city mode: a person asked for eyes on an area (L67)
+                drain(d, rates["cruise"])
+                self.city.watch_move(d)
             elif d.mission == "patrol":
                 if d.on_station:
                     drain(d, rates["patrol"])

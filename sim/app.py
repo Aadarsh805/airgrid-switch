@@ -853,6 +853,28 @@ async def city_trigger(body: CityTriggerBody, request: Request):
     return _game_body({"incident": result})
 
 
+class CityOrderBody(BaseModel):
+    order: str  # watch | unwatch | dock | release (L67)
+    place: str = ""
+    drone: str = ""
+    minutes: float | None = None
+
+
+@app.post("/city/order")
+async def city_order(body: CityOrderBody, request: Request):
+    """A person's order from the room, sent by the World Bot with the operator key."""
+    if denied := _game_denied(request):
+        return denied
+    if S.city is None:
+        return _not_found("no city running", "POST /city/start")
+    try:
+        result = S.city.order(body.order, body.place, body.drone, body.minutes)
+    except city.CityError as e:
+        return _city_error(e)
+    S.after_write()
+    return _game_body(result)
+
+
 class CityDecideBody(BaseModel):
     incident: str | None = None
     place: str | None = None  # a fragment of the incident's name, e.g. "market"

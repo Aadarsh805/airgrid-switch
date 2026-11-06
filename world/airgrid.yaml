@@ -240,6 +240,9 @@ city:                             # city mode (docs/city-mode.md, L56). Times in
   home_pct: 35                    # no relief came: head home now, well above the safety RTB
   fleet_board_min: 60             # #fleet board every 60 sim-min = 2 real minutes (L64)
   fleet_log_min: 5                # #fleet live log: changes gathered every 5 sim-min = 10 real s (L66)
+  watch_min: 60                   # `watch <place>` default: 60 clock-min = 2 real minutes (L67)
+  watch_max_min: 120              # longest watch a person can ask for
+  watch_km: 0.3                   # radius of the loops over the watched place
   roam:                           # closed routes of junctions: whole district, clear of RED-AIRFIELD
     - [J1, J2, J6, J5]
     - [J2, J3, J7, J6]

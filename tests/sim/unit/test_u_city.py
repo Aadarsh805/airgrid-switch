@@ -9,7 +9,7 @@ from sim import city as ct
 from sim import rules
 from sim.app import S, app
 from sim.engine import Engine
-from sim.geo import DT, in_rect
+from sim.geo import DT, dist, in_rect
 from sim.world import load_world
 
 W = load_world()
@@ -1070,3 +1070,66 @@ def test_fleet_log_lists_every_change_every_ten_seconds():
     assert not {e["text"] for e in logs} & set(c.feed)
     first = next(e for e in c.events if e["type"] == "fleet_board")
     assert "Since" not in first["text"]  # the first board, at once, compares with nothing
+
+
+# ---------------------------------------------------------------- orders (L67)
+def test_watch_sends_a_patrol_drone_that_loops_without_recording():
+    c = new_city()
+    run(c, 5)
+    out = c.order("watch", place="market")
+    assert out["place"] == "Market Street" and out["drone"]
+    run(c, 10)
+    d = c.eng.drones[c.watches["Market Street"]["drone"]]
+    assert d.mission == "watch" and not d.recording
+    assert dist(d.pos, c.watches["Market Street"]["at"]) <= W.raw["city"]["watch_km"] + 0.05
+    assert c.view()["watches"][0]["place"] == "Market Street"
+
+
+def test_watch_ends_on_time_and_the_drone_goes_back_to_patrol():
+    c = new_city()
+    c.order("watch", place="ring road", minutes=10)
+    run(c, 12)
+    assert c.watches == {}
+    assert any("time is up" in e["text"] for e in c.events if e["type"] == "city_order")
+
+
+def test_unknown_or_ambiguous_place_is_refused_with_the_names():
+    c = new_city()
+    with pytest.raises(ct.CityError) as e:
+        c.order("watch", place="nowhere")
+    assert e.value.rejection.code == "NOT_FOUND" and "Market Street" in e.value.rejection.hint
+
+
+def test_dock_grounds_until_released_and_nothing_launches_it():
+    c = new_city()
+    run(c, 2)
+    d = next(x for x in c.eng.drones.values() if x.mission == "roam")
+    c.order("dock", drone=d.id.lower())
+    run(c, 40)
+    assert d.state == "docked" and d.id in c.grounded and c._label(d) == "Grounded by operator"
+    assert d.flights == 1  # charged, still not launched
+    with pytest.raises(ct.CityError) as e:
+        c.order("dock", drone=d.id)
+    assert e.value.rejection.code == "DRONE_NOT_READY"
+    c.order("release", drone=d.id)
+    assert d.id not in c.grounded and not d.out_of_service
+    assert c.eng.violations == []
+
+
+def test_a_drone_at_an_incident_cannot_be_docked():
+    c = new_city()
+    inc = c.trigger("accident")
+    run(c, 1)
+    did = c.active[inc["id"]]["drone"]
+    with pytest.raises(ct.CityError) as e:
+        c.order("dock", drone=did)
+    assert e.value.rejection.code == "DRONE_NOT_READY" and "incident" in e.value.rejection.reason
+
+
+def test_order_api_needs_the_key(api):
+    api.post("/city/start", json={"paused": True}, headers=H)
+    assert api.post("/city/order", json={"order": "watch", "place": "market"}).status_code == 403
+    r = api.post("/city/order", json={"order": "watch", "place": "market"}, headers=H)
+    assert r.status_code == 200 and r.json()["place"] == "Market Street"
+    r = api.post("/city/order", json={"order": "dock", "drone": "D-99"}, headers=H)
+    assert r.status_code == 404 and r.json()["code"] == "NOT_FOUND"

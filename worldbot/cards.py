@@ -18,6 +18,28 @@ _CITY = re.compile(
     re.IGNORECASE,
 )
 HUMAN_ACTION_ROLE = {"take_control": "remote_pilot", "release_control": "remote_pilot"}
+# City orders (L67), the whole message: `watch market`, `watch market 30 min`, `stop watching
+# market`, `dock D-4`, `release d04`. Minutes are clock minutes, as shown on the dashboard.
+_ORDERS = (
+    (
+        "watch",
+        re.compile(
+            r"(?:@[\w-]+\s+)?(?:watch|increase surveillance on|surveil)\s+([a-z][\w -]*?)"
+            r"(?:\s+(?:for\s+)?(\d+)\s*(?:mins?|minutes?)?)?[.!]?",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "unwatch",
+        re.compile(
+            r"(?:@[\w-]+\s+)?(?:stop\s+watch(?:ing)?|unwatch)\s+([a-z][\w -]*?)[.!]?",
+            re.IGNORECASE,
+        ),
+    ),
+    ("dock", re.compile(r"(?:@[\w-]+\s+)?dock\s+(d-?\d{1,2})[.!]?", re.IGNORECASE)),
+    ("release", re.compile(r"(?:@[\w-]+\s+)?release\s+(d-?\d{1,2})[.!]?", re.IGNORECASE)),
+)
+ORDER_ROLE = "watch_commander"
 
 
 @dataclass(frozen=True)
@@ -51,6 +73,21 @@ def parse_city_command(text: str) -> Command | None:
     if not m:
         return None
     return Command(m.group(1).lower(), m.group(2) or "", m.group(3) or "")
+
+
+def parse_order(text: str) -> Command | None:
+    """A city order. `target` is the place or the drone (D-04); `reason` any minutes asked for."""
+    body = _PREFIX.sub("", text.strip())
+    for verb, rx in _ORDERS:
+        m = rx.fullmatch(body)
+        if not m:
+            continue
+        what = m.group(1).strip()
+        if verb in ("dock", "release"):
+            what = f"D-{int(what.upper().removeprefix('D').lstrip('-')):02d}"
+        minutes = m.group(2) if verb == "watch" and m.lastindex and m.lastindex >= 2 else ""
+        return Command(verb, what, minutes or "")
+    return None
 
 
 def _feed_text(event: dict) -> str:

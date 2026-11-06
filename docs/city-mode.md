@@ -63,3 +63,6 @@ Third button, "Random fire". The sim places a hidden fire at a seeded random roa
 ## #fleet (L64)
 Optional room for the whole fleet, World Bot only. Every 2 real minutes a board: how many drones are in the air (on patrol, at incidents, heading to a dock), charging and ready, how many went to charge and took off since the last board, the lowest battery in the air, and any patrol route without a drone. A ⚠️ line at once when a patrol drone goes home with no spare to relieve it, because the sim keeps 3 drones ready for emergencies. No @mentions, no replies, no agents.
 L66: plus a live log, every drone change as one timed row, gathered into one post about every 10 seconds. The first board posts at the start.
+
+## Orders from the room (L67)
+`watch <place> [N min]`, `stop watching <place>`, `dock D-n`, `release D-n`, typed in a city room by the Watch Commander. `POST /city/order` with the operator key. Watch takes a spare patrol drone (never the 3 kept ready for emergencies), flies loops over the place without recording, hands over when the battery runs low, and ends on time. Dock grounds a drone (not one at an incident or escort) until released. The reply is in the room, the record in `#fleet`, the ring on the map.

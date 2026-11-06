@@ -181,6 +181,8 @@ class City:
             "log_at": eng.now,
             "first": True,
         }
+        self.watches: dict[str, dict] = {}  # place name -> watch order (L67)
+        self.grounded: set[str] = set()  # drones docked and held by a person (L67)
         self._check_world()
         eng.city = self
 
@@ -493,12 +495,208 @@ class City:
             self._cover(inc)
             self._advance(inc, t)
         self._drive(t)
+        self._watch_tick(t)
         self._fleet_tick(t)
+
+    # ------------------------------------------------------------------ orders (L67)
+    def place(self, word: str) -> dict:
+        """A scene by name or a fragment of it: `market` -> Market Street."""
+        w = word.strip().lower()
+        scenes = sorted(
+            {s["name"]: s for v in self.cfg["scenes"].values() for s in v}.values(),
+            key=lambda s: s["name"],
+        )
+        hits = [s for s in scenes if w and (w == s["name"].lower() or w in s["name"].lower())]
+        exact = [s for s in hits if s["name"].lower() == w]
+        hits = exact or hits
+        if len(hits) != 1:
+            names = ", ".join(s["name"] for s in (hits or scenes))
+            raise CityError(
+                rules.Rejection(
+                    "NOT_FOUND", f"no single place matches '{word}'", f"one of: {names}"
+                )
+            )
+        return hits[0]
+
+    def order(self, kind: str, place: str = "", drone: str = "", minutes=None) -> dict:
+        """A person's order from the room: watch an area, stop watching, dock or release a drone.
+        Validated here like everything else; time-critical work stays sim code (rule 4)."""
+        if kind == "watch":
+            return self._watch(self.place(place), minutes)
+        if kind == "unwatch":
+            return self._unwatch(self.place(place)["name"])
+        if kind in ("dock", "release"):
+            d = self.eng.drones.get(drone.upper())
+            if d is None:
+                raise CityError(rules.not_found("drone", drone))
+            return self._dock(d) if kind == "dock" else self._release(d)
+        raise CityError(rules.not_found("order", kind))
+
+    def _watch_drone(self, at) -> str | None:
+        """Nearest fit roamer, or a ready drone above the emergency floor. Never a reserve one."""
+        eng = self.eng
+        gate = eng.M["relief_trigger_pct"] + 10
+        near = [
+            d
+            for d in eng.drones.values()
+            if d.mission == "roam" and d.bat >= gate and d.id not in self.grounded
+        ]
+        if near:
+            d = min(near, key=lambda x: (dist(x.pos, at), x.id))
+            self.roam.pop(d.id, None)
+            d.mission, d.incident, d.target, d.on_station = "watch", None, None, False
+            return d.id
+        pilot = eng.pilots.pilot_for([])
+        for d in eng.ready_candidates(at, eng.M["launch_gate_pct"]["patrol"]):
+            if pilot and eng.floor_allows(d):
+                eng.launch(d, eng.now, "watch", pilot=pilot)
+                return d.id
+        return None
+
+    def _watch(self, scene: dict, minutes) -> dict:
+        eng, name = self.eng, scene["name"]
+        mins = float(minutes) if minutes else float(self.cfg["watch_min"])
+        mins = max(5.0, min(mins, float(self.cfg["watch_max_min"])))
+        w = self.watches.get(name)
+        if w is None:
+            did = self._watch_drone(scene["at"])
+            if did is None:
+                keep = eng.world.policies["ready_floor"]
+                raise CityError(
+                    rules.Rejection(
+                        "DRONE_NOT_READY",
+                        f"no spare drone to watch {name}: every patrol drone is low or busy, "
+                        f"and {keep} stay ready for emergencies",
+                        "try again in a few minutes",
+                    )
+                )
+            w = {"place": name, "at": list(scene["at"]), "drone": did, "k": 0}
+            self.watches[name] = w
+        w["until"] = eng.now + mins
+        until = fmt(w["until"] % 1440)[:5]
+        text = f"{w['drone']} watches {name} until {until} (no recording: not an incident)."
+        self._say("city_order", text, None, feed=False, order="watch", place=name, drone=w["drone"])
+        actions.log_decision(eng, "operator", "city:order:watch", rationale=f"{name} until {until}")
+        return {"order": "watch", "place": name, "drone": w["drone"], "until": until, "text": text}
+
+    def _unwatch(self, name: str, why: str = "stopped by the operator") -> dict:
+        w = self.watches.pop(name, None)
+        if w is None:
+            raise CityError(rules.not_found("watch", name))
+        d = self.eng.drones.get(w["drone"])
+        back = ""
+        if d is not None and d.mission == "watch":
+            self._to_roam(d)
+            back = f" {w['drone']} back on patrol."
+        text = f"Watch over {name} ended: {why}.{back}"
+        self._say(
+            "city_order", text, None, feed=False, order="unwatch", place=name, drone=w["drone"]
+        )
+        actions.log_decision(self.eng, "operator", "city:order:unwatch", rationale=name)
+        return {"order": "unwatch", "place": name, "drone": w["drone"], "text": text}
+
+    def watch_move(self, d) -> None:
+        """Engine hook: slow loops around the watched place, clear of every zone."""
+        w = next((w for w in self.watches.values() if w["drone"] == d.id), None)
+        if w is None:
+            self._to_roam(d)
+            return
+        r = self.cfg["watch_km"]
+        x, y = w["at"]
+        ring = [[x + r, y], [x, y + r], [x - r, y], [x, y - r]]
+        zones = [z for z in self.eng.airspace.zones if z["kind"] != "no_record"]
+        ring = [p for p in ring if rules.no_fly_zone("", d.pos, p, zones).ok] or [w["at"]]
+        if self.eng._fly(d, ring[w["k"] % len(ring)], self.eng.M["cruise_km_per_min"]):
+            d.on_station = True
+            w["k"] += 1
+
+    def _watch_tick(self, t: float) -> None:
+        eng = self.eng
+        for name, w in list(self.watches.items()):
+            d = eng.drones.get(w["drone"])
+            if t >= w["until"] - 1e-9:
+                self._unwatch(name, "time is up")
+            elif d is None or d.mission != "watch":  # e.g. a safety RTB
+                self._replace_watcher(name, w, None)
+            elif d.bat <= eng.M["relief_trigger_pct"]:
+                self._replace_watcher(name, w, d)
+
+    def _replace_watcher(self, name: str, w: dict, tired) -> None:
+        eng = self.eng
+        if tired is not None:
+            tired.mission = "roam"  # out of the pick, then home
+            eng.rtb(tired, eng.now, f"low battery, watch over {name} handed on")
+        did = self._watch_drone(w["at"])
+        if did is None:
+            self.watches.pop(name, None)
+            text = f"Watch over {name} ended early: no spare drone to take over."
+            self._say("fleet_alert", text, None, feed=False, place=name)
+            return
+        old, w["drone"] = w["drone"], did
+        text = f"{did} takes over the watch on {name} from {old}."
+        self._say("city_order", text, None, feed=False, order="watch", place=name, drone=did)
+
+    def _dock(self, d) -> dict:
+        eng = self.eng
+        if d.id in self.grounded:
+            raise CityError(
+                rules.Rejection("DRONE_NOT_READY", f"{d.id} is already grounded", f"release {d.id}")
+            )
+        if d.mission in ("incident", "escort", "investigate"):
+            job = {"escort": "escorting an ambulance", "investigate": "checking a heat reading"}
+            raise CityError(
+                rules.Rejection(
+                    "DRONE_NOT_READY",
+                    f"{d.id} is {job.get(d.mission, 'at an incident')}; it stays until that's done",
+                    "dock it after the incident, or pick another drone",
+                )
+            )
+        for name, w in list(self.watches.items()):
+            if w["drone"] == d.id:
+                self._unwatch(name, f"{d.id} docked by the operator")
+        self.grounded.add(d.id)
+        d.out_of_service = True  # the engine's ready rules then never launch it
+        if d.state == "airborne":
+            self.roam.pop(d.id, None)
+            d.mission = "roam"
+            eng.rtb(d, eng.now, "docked by the operator")
+        where = f"heads to dock {d.target}" if d.state == "airborne" else f"stays at {d.slot}"
+        text = f"{d.id} {where} and is grounded until released ({d.bat:.0f}%)."
+        self._say("city_order", text, None, feed=False, order="dock", drone=d.id)
+        actions.log_decision(eng, "operator", "city:order:dock", rationale=d.id)
+        return {"order": "dock", "drone": d.id, "text": text}
+
+    def _release(self, d) -> dict:
+        if d.id not in self.grounded:
+            raise CityError(
+                rules.Rejection("DRONE_NOT_READY", f"{d.id} isn't grounded", f"dock {d.id}")
+            )
+        self.grounded.discard(d.id)
+        d.out_of_service = False
+        text = f"{d.id} released: it flies again once charged ({d.bat:.0f}%)."
+        self._say("city_order", text, None, feed=False, order="release", drone=d.id)
+        actions.log_decision(self.eng, "operator", "city:order:release", rationale=d.id)
+        return {"order": "release", "drone": d.id, "text": text}
+
+    def watches_view(self) -> list[dict]:
+        return [
+            {
+                "place": w["place"],
+                "at": w["at"],
+                "drone": w["drone"],
+                "until": fmt(w["until"] % 1440)[:5],
+            }
+            for w in self.watches.values()
+        ]
 
     # ------------------------------------------------------------------ #fleet (L64)
     PHASE = {"On patrol": "patrol", "Checking a heat reading": "patrol", "Heading to dock": "home"}
 
     def _phase(self, d) -> str:
+        if d.id in self.grounded:
+            return "grounded"
+        if d.mission == "watch":
+            return "watch"
         label = self._label(d)
         return {"Charging": "charging", "Ready": "ready"}.get(label) or self.PHASE.get(
             label, "incident"
@@ -507,6 +705,12 @@ class City:
     def _change(self, d, was: str, now: str) -> str:
         """One fleet log row in words, e.g. `D-04 lands at P3 and charges (38%)`."""
         b = f"{d.bat:.0f}%"
+        if now == "grounded":
+            return f"{d.id} grounded by the operator ({b})"
+        if was == "grounded":
+            return f"{d.id} released by the operator ({b})"
+        if now == "watch":
+            return f"{d.id} {self._label(d).lower()} ({b})"
         if now == "home":
             return f"{d.id} heads to dock {d.target} ({b})"
         if now == "charging":
@@ -556,10 +760,10 @@ class City:
         if t - f["at"] < self.cfg["fleet_board_min"] - 1e-9 and not f["first"]:
             return
         f["first"] = False
-        n = {k: 0 for k in ("patrol", "incident", "home", "charging", "ready")}
+        n = {k: 0 for k in ("patrol", "watch", "incident", "home", "charging", "ready", "grounded")}
         for p in f["phase"].values():
             n[p] += 1
-        air = n["patrol"] + n["incident"] + n["home"]
+        air = n["patrol"] + n["watch"] + n["incident"] + n["home"]
         low = min(
             (d for d in self.eng.drones.values() if d.state == "airborne"),
             key=lambda d: (d.bat, d.id),
@@ -575,6 +779,8 @@ class City:
             )
         ]
         doing = [f"{n['patrol']} on patrol"]
+        if n["watch"]:
+            doing.append(f"{n['watch']} watching an area")
         if n["incident"]:
             doing.append(f"{n['incident']} at incidents")
         if n["home"]:
@@ -588,6 +794,8 @@ class City:
             f"{air} in the air ({', '.join(doing)}) · {n['charging']} charging · "
             f"{n['ready']} ready{held}."
         )
+        if n["grounded"]:
+            text += f" {n['grounded']} grounded by the operator."
         if t > f["at"] + 1e-9:  # the very first board has nothing to compare with
             since = fmt(f["at"] % 1440)[:5]
             text += f" Since {since}: {f['home']} went to charge, {f['out']} took off."
@@ -1068,6 +1276,13 @@ class City:
 
     # ------------------------------------------------------------------ views
     def _label(self, d) -> str:
+        if d.id in self.grounded:
+            return (
+                "Grounded by operator" if d.state == "docked" else "Heading to dock, then grounded"
+            )
+        if d.mission == "watch":
+            w = next((w for w in self.watches.values() if w["drone"] == d.id), None)
+            return f"Watching {w['place']}" if w else "Watching"
         if d.state == "docked":
             return "Ready" if d.bat >= self.eng.M["ready_pct"] else "Charging"
         if d.mission == "roam":
@@ -1184,6 +1399,8 @@ class City:
             "incidents": [self.incident_view(i) for i in self.active.values()],
             "traffic": [self._traffic_view(b) for b in self.traffic if b["status"] != "pending"],
             "detections": self.detections(),
+            "watches": self.watches_view(),
+            "grounded": sorted(self.grounded),
             "feed": list(self.feed),
             "events": [e for e in self.events if e["seq"] > since],
             **({"unfound": self.unfound()} if operator else {}),
@@ -1209,6 +1426,8 @@ def idle_view(world) -> dict:
         "incidents": [],
         "traffic": [],
         "detections": [],
+        "watches": [],
+        "grounded": [],
         "feed": [],
         "events": [],
     }

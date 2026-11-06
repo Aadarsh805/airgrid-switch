@@ -928,3 +928,47 @@ def test_fleet_log_posts_rows_to_fleet(tmp_path):
 
     asyncio.run(go())
     assert room.out == [("#fleet", rows)]
+
+
+def test_orders_reach_the_sim_only_from_the_watch_commander(tmp_path):
+    """L67: `watch market`, `dock D-4` from the mapped watch_commander; chat stays chat."""
+    room, seen = _Rooms(), []
+
+    async def go():
+        bot = _bot(
+            room,
+            tmp_path,
+            calls=seen,
+            humans={"boss": ("watch_commander",), "doc": ("duty_doctor",)},
+        )
+        await bot.handle_message(_msg("doc", "watch market"))
+        await bot.handle_message(_msg("boss", "watch out!"))
+        await bot.handle_message(_msg("boss", "watch market 30 min"))
+        await bot.handle_message(_msg("boss", "dock D-4"))
+        await bot.handle_message(_msg("boss", "release d04"))
+        await bot.aclose()
+
+    asyncio.run(go())
+    orders = [c for c in seen if c[0] == "/city/order"]
+    assert len(orders) == 3 and all(c[1] == "k" for c in orders)
+    assert b'"place":"market"' in orders[0][2] and b'"minutes":30.0' in orders[0][2]
+    assert b'"drone":"D-04"' in orders[1][2] and b'"order":"release"' in orders[2][2]
+    assert any("needs watch_commander" in t for _r, t in room.out)
+
+
+def test_order_events_go_to_fleet(tmp_path):
+    room = _Rooms()
+
+    async def go():
+        bot = _bot(room, tmp_path)
+        e = {
+            "seq": 1,
+            "type": "city_order",
+            "text": "D-03 watches Market Street until 10:05.",
+            "payload": {},
+        }
+        await bot.handle_event(e)
+        await bot.aclose()
+
+    asyncio.run(go())
+    assert room.out == [("#fleet", "📌 Fleet: D-03 watches Market Street until 10:05.")]

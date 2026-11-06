@@ -46,6 +46,17 @@ AirGrid puts that coordination in one team chat: the agents do the legwork, the 
 | `#fleet` (optional) | The whole fleet, bot only: a live log of every drone change about every 10 seconds, a board every 2 minutes (in the air, charging, ready, what changed) and a ⚠️ line when a patrol drone goes home with no spare to relieve it |
 | `#incident-1`, `#incident-2` | One incident each: the agents' handoffs and every call for a person (the doctor's `transport`, the lead's `leave`). Two overlapping emergencies stay readable |
 
+**Orders from the room** (the Watch Commander, typed in `#ops` with no @mention). The sim checks each one and says what happened; `#fleet` and the map show it:
+
+| Type | What happens |
+|---|---|
+| `watch market` or `watch market 30 min` | The nearest spare patrol drone flies loops over that place until the time is up (default 60 clock-minutes, about 2 real minutes). No recording: it isn't an incident. Another drone takes over if its battery runs low |
+| `stop watching market` | Ends the watch; the drone goes back on patrol |
+| `dock D-4` | The drone goes to the nearest free dock and stays grounded, e.g. for a fault report or to charge before a busy hour. Refused while it's at an incident or escorting |
+| `release D-4` | The drone can fly again once charged |
+
+The 3 drones kept ready for emergencies are never used for a watch, so a watch can be refused when the fleet is stretched.
+
 **People and roles** live in `config/humans.yaml`: the **incident lead** decides `leave` or `stay`, and the **duty doctor** decides `transport` or `treat`. Each person is matched by their Switch sender id, so a display name can't impersonate them. Solo, one person holds both roles; with a team, give each role to a different person.
 
 **Setting it up yourself:** `HUMAN_TODO.md` has the exact steps. Register the World Bot (`scripts/bootstrap_worldbot.py` on a local Switch server), create the four agents in Switch Console pointing at `~/airgrid-agents/<name>` (from `scripts/install_agents.sh`), invite them to the three channels, paste the room instructions from `agents/switch/rooms/`, then run `scripts/run_game.sh --discord`.

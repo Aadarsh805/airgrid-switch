@@ -36,6 +36,8 @@ Press **Random fire**. Flames appear on the map with no alert beacon.
 A patrolling drone picks up a heat reading, turns, and confidence climbs to "fire confirmed". The engine goes. ⏩ Show the progress ring once.
 > "The sensor is simulated. The teamwork is the point."
 
+Optional, 10 s, if under time: in `#ops` type `watch market`. A drone peels off its patrol, a ring appears over Market Street, and `#fleet` logs it. Say: "People can steer the fleet too. The sim checks every order."
+
 ## 2:25–2:45 · Close
 `#ops`: one start line and one report per incident. The decisions stayed in the incident rooms.
 > "Agents do the legwork, people decide, and the record writes itself. All in the chat, through Switch. The simulator owns the truth, so agents can't approve their own work. Fictional city, simulated drones."

@@ -178,6 +178,10 @@ class WorldBot:
             if msg.author in rooms.ALL_AGENTS:
                 await self.report_activity(msg.author, "idle")
             if self.profile is not None and self.profile.decides:
+                order = cards.parse_order(msg.text)
+                if order is not None and msg.room in self.profile.rooms:
+                    await self._city_order(msg, order)
+                    return
                 cmd = cards.parse_city_command(msg.text)
                 if cmd is not None and msg.room in self.profile.rooms:
                     await self._city_decide(msg, cmd)
@@ -242,6 +246,39 @@ class WorldBot:
         line = name_line
         self._record("decided", msg, cmd, detail=cmd.verb)
         await self.transport.post(room, line)
+
+    async def _city_order(self, msg: RoomMessage, cmd: Command) -> None:
+        """`watch market`, `dock D-04`... from the mapped Watch Commander only (L67). The sim
+        validates and says what happened; the bot only carries it."""
+        if cmd.verb in ("watch", "unwatch"):  # "watch out!" is chat, not an order
+            first = cmd.target.split()[0].lower()
+            names = " ".join(n.lower() for n, _at in self.profile.places)
+            if first not in names.split():
+                return
+        roles = self.humans.get(msg.author)
+        if msg.author in rooms.ALL_AGENTS or roles is None:
+            who = "an agent" if msg.author in rooms.ALL_AGENTS else "an unmapped user"
+            await self._refuse(msg, cmd, f"{who} cannot do this; a mapped human must")
+            return
+        if cards.ORDER_ROLE not in roles:
+            await self._refuse(msg, cmd, f"needs {cards.ORDER_ROLE}; ask the person who holds it")
+            return
+        if not self.operator_key:
+            await self._refuse(msg, cmd, "no operator key here; restart with run_game.sh")
+            return
+        body: dict = {"order": cmd.verb}
+        if cmd.verb in ("dock", "release"):
+            body["drone"] = cmd.target
+        else:
+            body["place"] = cmd.target
+        if cmd.reason:
+            body["minutes"] = float(cmd.reason)
+        headers = {"X-Game-Key": self.operator_key}
+        out = await self._sim(msg, cmd, "/city/order", body, headers=headers)
+        if out is None:
+            return
+        self._record("ordered", msg, cmd, detail=out.get("text", ""))
+        await self.transport.post(msg.room, f"✅ {out.get('text', 'Done.')}")
 
     def _log_incident(self, event: dict) -> None:
         """The flight authorisation log gets one entry per incident, at its report."""
