@@ -6,7 +6,7 @@ The vibe: a casual walkthrough, like showing a friend what you built. Not an ad.
 
 ## The reel
 - File: `Downloads/instasave.website_AQOp…mp4`, 39 s, vertical 720×1280. Transcript: `Downloads/Drone_Video_Transcript_and_Screenshots.pdf`.
-- It's someone else's work: narration by **Builder's Notes**, footage credited on screen to **XuZhenqing, Shenzhen**. Use only the two short pieces below (about 24 s in all), keep the credit on screen the whole time, and name the source in the video description. Better still, message the creator and ask; a yes removes any doubt.
+- Source: https://www.instagram.com/p/DemjTo6u_-c/ by **@yahyabenssid** (series "Builder's Notes / 002"), footage credited on screen to **XuZhenqing, Shenzhen**. It's someone else's work: Use only the two short pieces below (about 24 s in all), keep the credit on screen the whole time, and name the source in the video description. Better still, message @yahyabenssid on Instagram and ask; a yes removes any doubt.
 - Piece 1, **0:00.0–0:12.1**: "China turned traffic lights into drone airports… monitor traffic, spot violations, and respond to incidents."
 - Piece 2, **0:23.9–0:30.5**: "Now imagine dozens of these stations across a city. The real innovation isn't the drone, it's the network."
 - Piece 3, **0:30.9–0:37.3**, used near the end: "But that raises a bigger question. Where do we draw the line between public safety and personal privacy?"

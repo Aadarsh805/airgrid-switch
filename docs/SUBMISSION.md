@@ -57,6 +57,7 @@ What got in the way: on a local server run by Switch Console there's no Gateway 
 What I'd want next: a way to make registration keys in Console for local servers, a choice to keep an agent's replies in its thread or in the channel, and room documents you can read in Discord, so a team can see a shared log without opening the Gateway.
 
 ## ⚠ Before you submit (deadline Nov 7, 11:59 PM IST)
+- In the video's YouTube or Loom description, credit the opening reel: "Opening clip: 'Drone airports' by @yahyabenssid (Builder's Notes), https://www.instagram.com/p/DemjTo6u_-c/, footage XuZhenqing." Ask them first if you can.
 - Record the video under 3 minutes using `docs/09-DEMO-SCRIPT.md` and `docs/AirGrid-Demo-Guide.pdf`; upload it to YouTube or Loom, public or unlisted, and paste the link above.
 - Optional: ask the organisers about the timing, since some Switch work was done before Nov 4. The README's "Build and commit timeline" already says what was built when; point them to it.
 - The repo is public, with the full commit history.

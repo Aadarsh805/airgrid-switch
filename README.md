@@ -233,7 +233,7 @@ This repo's first commit holds the pre-hackathon tools without the Switch integr
 ## Sources for the context above
 - Chula Vista Police Department, Drone as First Responder programme reporting (calls flown, time to scene).
 - DJI Dock 3 specifications (flight time, charge time, wind limit), used to calibrate the simulated drones.
-- Builder's Notes reel on Shenzhen's street-side drone docks (footage: XuZhenqing), the inspiration for the project.
+- ["Drone airports" on Shenzhen's traffic lights](https://www.instagram.com/p/DemjTo6u_-c/), a Builder's Notes reel by [@yahyabenssid](https://www.instagram.com/yahyabenssid/) (footage: XuZhenqing), the inspiration for the project.
 
 These are real programmes for context only. No real programme's numbers are presented as AirGrid's results.
 
