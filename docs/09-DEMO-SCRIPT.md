@@ -2,7 +2,7 @@
 
 The submission video must be **under 3 minutes**, public or unlisted on YouTube or Loom, and must show **the agents working in a real chat with your teammates**. Target 2:50, hard stop 2:58.
 
-The story: a reel about Shenzhen's drone network ends with a question, *"Where do we draw the line between public safety and personal privacy?"* AirGrid is the answer for our own cities: the drones are the easy part; the hard part is Fire, Police, the Hospital and a fleet team working as one, with people making the calls and privacy built into the rules.
+The vibe: a casual walkthrough, like showing a friend what you built. Not an ad. Talk normally, it's fine to pause or say "so" and "basically". Don't read it word for word: glance at the lines, then say them your way.
 
 ## The reel
 - File: `Downloads/instasave.website_AQOp…mp4`, 39 s, vertical 720×1280. Transcript: `Downloads/Drone_Video_Transcript_and_Screenshots.pdf`.
@@ -24,26 +24,26 @@ The story: a reel about Shenzhen's drone network ends with a question, *"Where d
 | 2:38–2:52 | Privacy rules card, then the city | Voice-over 6 |
 | 2:52–2:55 | End card: name, repo link, "Fictional city · simulated" | Silence |
 
-## Voice-over (read at an easy pace; each block fits its slot)
-**VO 1 (0:19–0:36, about 45 words)**
-> "That's Shenzhen. Drones that launch from the street, land themselves, and recharge. I wanted this for our cities. But a network of drones only helps if the people on the ground work as one: fire, police, the hospital, and a team watching the fleet. So I built AirGrid."
+## Voice-over (rough lines, say them your way)
+**VO 1 (0:19–0:36), over the title and the city**
+> "So I came across this reel a while back. In Shenzhen the drones just sit on poles above the street, fly out, come back and charge on their own. And I was like, okay, what would it take to have that here? Honestly the drones aren't the hard part. It's getting fire, police, the hospital and whoever's watching the drones to actually work together. So that's what I tried to build. It's called AirGrid."
 
-**VO 2 (0:36–0:46, about 28 words)**
-> "AirGrid runs a city's drone response from one team chat. Drone Ops, Fire, Hospital and Police are AI agents in Switch. The people on the team make the calls."
+**VO 2 (0:36–0:46), over the Discord channels**
+> "Everything runs in Discord through Switch. These four are AI agents: drone ops, fire, hospital, police. And this is me. I'm the one who makes the actual calls."
 
-**VO 3 (0:46–1:46, about 120 words, spoken over the accident)**
-> "An accident on Ring Road. The nearest drone gets there first and tags Police. Police find three injured and call the Hospital. The Hospital recommends taking them in, and asks the duty doctor. That's a person. I type *transport*."
-> (⏩) "A drone escorts the ambulance, flying ahead of it. It spots a traffic jam before the ambulance reaches it, and asks Police to clear it. Watch the junction clear."
-> (⏩) "Patient delivered. The scene looks clear, so the incident lead types *leave*, and the full report lands in ops: who went, when, and what was recorded. The agents did the legwork. People made every decision."
+**VO 3 (0:46–1:46), over the accident**
+> "Let me trigger an accident. Okay, a drone's already on it, and it's pinging police in the incident channel. Police say three people are hurt, so they pull in the hospital. Hospital thinks they should go in, but it asks the doctor first. That's me, so... *transport*."
+> (⏩) "Now a drone flies ahead of the ambulance. And there's a jam up ahead. It sees it first and asks police to clear it. You can see the cars moving out of the way."
+> (⏩) "Patient's at the hospital. It's asking if the drone can leave. Yeah, *leave*. And the report shows up in ops with everything that happened."
 
-**VO 4 (1:46–2:10, about 50 words)**
-> "This fire, nobody reported. It's burning, and no one knows yet. A patrolling drone picks up the heat with its thermal sensor, simulated here, turns to check, and confirms it. The fire engine is already on its way. Found before anyone called."
+**VO 4 (1:46–2:10), over the random fire**
+> "This one's a fire nobody called in. It's just burning there. A drone on patrol picks up the heat, the sensor's simulated obviously, goes over to check, and yep, it's a fire. And the fire truck's already heading out."
 
-**VO 5 (2:10–2:30, about 50 words)**
-> "The fleet team sees every drone, live: taking off, charging, coming back. And they can steer it from chat. *Watch market* puts a drone over Market Street. *Dock D-4* grounds one for a fault. The simulator checks every order, and it never touches the three drones kept for emergencies."
+**VO 5 (2:10–2:30), over #fleet and the orders**
+> "This channel is just the drones. Who's flying, who's charging, who's coming back. And I can tell them stuff. *Watch market*, and one drone goes and circles Market Street. *Dock D-4*, and it goes home and stays there. It always keeps three drones back for emergencies, so it won't let me use those."
 
-**VO 6 (2:38–2:52, about 40 words)**
-> "My answer: drones record only at an active incident, and that's logged. A watch never records. Face identification doesn't exist in the system. And no AI approves its own work: people decide, in the open, through Switch."
+**VO 6 (2:38–2:52), over the privacy card and the city**
+> "That question at the end of the reel is a fair one. So here, drones only record when there's an actual incident, and it's logged. The watch thing doesn't record at all. There's no face recognition. And the AI never decides anything on its own, people do. That's AirGrid. Thanks for watching."
 
 ## Shots to record (OBS, 1920×1080, 30 fps)
 Record each flow as its own take; the editor cuts the waiting. Dashboard on the left (about 60%), Discord on the right.
@@ -59,7 +59,7 @@ Record each flow as its own take; the editor cuts the waiting. Dashboard on the 
 
 **Teammate:** if a friend can hold `duty_doctor` on their own Discord account and type `transport`, that's what "with your teammates" looks like on screen. Solo works too.
 
-**Voice:** record the six VO blocks separately afterwards, one file each (`vo-1.wav` … `vo-6.wav`), in a quiet room with the mic close. Phone voice memos are fine.
+**Voice:** record the voice-over afterwards, one file per block, in a quiet room with the mic close (phone voice memos are fine): `vo-1`, `vo-2`, `vo-3a`, `vo-3b`, `vo-3c` (VO 3 split at each ⏩), `vo-4`, `vo-5`, `vo-6`. Any of wav, m4a or mp3 works. Put them in `video/raw/` next to the takes, named `T1-calm.mp4` … `T5-fleet.mp4`.
 
 ## Before recording
 - Laptop plugged in and awake. Restart Switch Console and wait for the green dot.
