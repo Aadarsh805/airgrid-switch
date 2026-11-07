@@ -2,7 +2,7 @@
 
 **A city drone monitoring system with AI agents, run from one team chat on Switch.** Drones patrol a fictional city. Drone Ops, Fire, Hospital and Police are your teammates in Discord: AI agents in Switch rooms who each own a job, tag each other for help, and check with a person before any big call.
 
-Built for **Flip the Switch** (Nov 4–7, 2026), Best Business Workflow track. 📄 **[Demo guide (PDF)](docs/AirGrid-Demo-Guide.pdf)**: everything below, with more screenshots.
+Built for **Flip the Switch** (Nov 4–7, 2026), Best Business Workflow track. ▶️ **[Demo video (3:32)](https://youtu.be/gGV8BB4gNFg)** · 📄 **[Demo guide (PDF)](docs/AirGrid-Demo-Guide.pdf)**: everything below, with more screenshots.
 
 > **Simulated.** AirGrid is a training and prototyping simulator. The district, the agency and every number on screen are simulated. No real drones, no real dispatch, no identification of people. The "thermal sensor" is simulated too.
 

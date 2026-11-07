@@ -22,8 +22,8 @@ It's for city emergency teams, and for anyone who wants to see how AI agents and
 **GitHub repository** (public)
 https://github.com/Aadarsh805/airgrid-switch
 
-**Demo video** ⚠ record first. Under 3 minutes, YouTube or Loom, public or unlisted
-(link)
+**Demo video**
+https://youtu.be/gGV8BB4gNFg
 
 **Live demo or deployment**
 Leave blank. It runs locally with Switch Console and Discord.

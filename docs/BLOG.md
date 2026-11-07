@@ -97,6 +97,8 @@ What I'd want next:
 
 ## Try it
 
+Here's the demo video (3:32): [youtu.be/gGV8BB4gNFg](https://youtu.be/gGV8BB4gNFg).
+
 The code is on GitHub: [github.com/Aadarsh805/airgrid-switch](https://github.com/Aadarsh805/airgrid-switch). The README has every command, the setup steps for Switch and Discord, and a PDF demo guide. The city runs on its own with `scripts/run_game.sh`, and Discord is where the team works.
 
 To be upfront about timing: I built the simulator, the CLI and the 3D map before the hackathon, plus a first version of the Switch workflow while learning Switch. The README has a timeline of what came when. During the hackathon I added the random fire detection, the live `#fleet` channel, the orders from chat, cleaner rooms, and the demo video.
